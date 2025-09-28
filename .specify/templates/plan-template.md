@@ -11,8 +11,8 @@
 2. Fill Technical Context (scan for NEEDS CLARIFICATION)
    → Detect Project Type from file system structure or context (web=frontend+backend, mobile=app+api)
    → Set Structure Decision based on project type
-3. Fill the Constitution Check section based on the content of the constitution document.
-4. Evaluate Constitution Check section below
+3. Fill the Constitution Check section with Code Quality, Testing, Player Experience, and Performance commitments derived from the constitution.
+4. Evaluate the Constitution Check section below
    → If violations exist: Document in Complexity Tracking
    → If no justification possible: ERROR "Simplify approach first"
    → Update Progress Tracking: Initial Constitution Check
@@ -47,7 +47,11 @@
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- REQUIRED: Plan documents code quality safeguards (linting, modularity, reviewer checklist).
+- REQUIRED: Plan commits to writing and running automated tests before implementation.
+- REQUIRED: Plan reuses the shared player experience standards (design system, copy guidance, accessibility).
+- REQUIRED: Plan calls out explicit performance targets plus validation strategy.
+- STOP: If any item is unmet, halt planning and resolve the gap before continuing.
 
 ## Project Structure
 
@@ -216,4 +220,4 @@ directories captured above]
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `/memory/constitution.md`*

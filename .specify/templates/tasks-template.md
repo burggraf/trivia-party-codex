@@ -16,8 +16,10 @@
    → Setup: project init, dependencies, linting
    → Tests: contract tests, integration tests
    → Core: models, services, CLI commands
+   → Experience: accessibility, UX consistency, content reviews
+   → Performance: profiling, budget validation, instrumentation
    → Integration: DB, middleware, logging
-   → Polish: unit tests, performance, docs
+   → Polish: unit tests, documentation, release readiness
 4. Apply task rules:
    → Different files = mark [P] for parallel
    → Same file = sequential (no [P])
@@ -29,6 +31,8 @@
    → All contracts have tests?
    → All entities have models?
    → All endpoints implemented?
+   → Experience guardrails and accessibility tasks covered?
+   → Performance validation and monitoring tasks included?
 9. Return: SUCCESS (tasks ready for execution)
 ```
 
@@ -47,54 +51,60 @@
 - [ ] T002 Initialize [language] project with [framework] dependencies
 - [ ] T003 [P] Configure linting and formatting tools
 
-## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
-**CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
+## Phase 3.2: Tests & Experience Gates ⚠️ MUST COMPLETE BEFORE 3.3
+**CRITICAL: Automated checks MUST exist and MUST FAIL before ANY implementation**
 - [ ] T004 [P] Contract test POST /api/users in tests/contract/test_users_post.py
 - [ ] T005 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
 - [ ] T006 [P] Integration test user registration in tests/integration/test_registration.py
 - [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
+- [ ] T008 [P] Accessibility regression coverage for new flows in tests/accessibility/test_flows.py
+- [ ] T009 UX copy and component consistency review documented in docs/ux-checklist.md
+- [ ] T010 Baseline performance budget test in tests/performance/test_latency_budget.py
 
-## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T008 [P] User model in src/models/user.py
-- [ ] T009 [P] UserService CRUD in src/services/user_service.py
-- [ ] T010 [P] CLI --create-user in src/cli/user_commands.py
-- [ ] T011 POST /api/users endpoint
-- [ ] T012 GET /api/users/{id} endpoint
-- [ ] T013 Input validation
-- [ ] T014 Error handling and logging
+## Phase 3.3: Core Implementation (ONLY after tests and experience gates are failing)
+- [ ] T011 [P] User model in src/models/user.py
+- [ ] T012 [P] UserService CRUD in src/services/user_service.py
+- [ ] T013 [P] CLI --create-user in src/cli/user_commands.py
+- [ ] T014 POST /api/users endpoint
+- [ ] T015 GET /api/users/{id} endpoint
+- [ ] T016 Input validation
+- [ ] T017 Error handling and logging
 
 ## Phase 3.4: Integration
-- [ ] T015 Connect UserService to DB
-- [ ] T016 Auth middleware
-- [ ] T017 Request/response logging
-- [ ] T018 CORS and security headers
+- [ ] T018 Connect UserService to DB
+- [ ] T019 Auth middleware
+- [ ] T020 Request/response logging
+- [ ] T021 CORS and security headers
 
 ## Phase 3.5: Polish
-- [ ] T019 [P] Unit tests for validation in tests/unit/test_validation.py
-- [ ] T020 Performance tests (<200ms)
-- [ ] T021 [P] Update docs/api.md
-- [ ] T022 Remove duplication
-- [ ] T023 Run manual-testing.md
+- [ ] T022 [P] Unit tests for validation in tests/unit/test_validation.py
+- [ ] T023 Performance tuning to hit latency budget (<200ms)
+- [ ] T024 [P] Update docs/api.md and docs/ux-checklist.md
+- [ ] T025 Remove duplication
+- [ ] T026 Run manual-testing.md with performance and UX sign-off
 
 ## Dependencies
-- Tests (T004-T007) before implementation (T008-T014)
-- T008 blocks T009, T015
-- T016 blocks T018
-- Implementation before polish (T019-T023)
+- Tests and experience gates (T004-T010) before implementation (T011-T017)
+- T011 blocks T012 and T018
+- T019 blocks T021
+- Implementation before polish (T022-T026)
 
 ## Parallel Example
 ```
-# Launch T004-T007 together:
+# Launch T004-T010 together when files differ:
 Task: "Contract test POST /api/users in tests/contract/test_users_post.py"
 Task: "Contract test GET /api/users/{id} in tests/contract/test_users_get.py"
 Task: "Integration test registration in tests/integration/test_registration.py"
 Task: "Integration test auth in tests/integration/test_auth.py"
+Task: "Accessibility regression coverage for new flows in tests/accessibility/test_flows.py"
+Task: "Baseline performance budget test in tests/performance/test_latency_budget.py"
 ```
 
 ## Notes
 - [P] tasks = different files, no dependencies
-- Verify tests fail before implementing
+- Verify tests and experience/performance gates fail before implementing
 - Commit after each task
+- Capture evidence for UX consistency and performance validation in linked artifacts
 - Avoid: vague tasks, same file conflicts
 
 ## Task Generation Rules
@@ -111,8 +121,13 @@ Task: "Integration test auth in tests/integration/test_auth.py"
 3. **From User Stories**:
    - Each story → integration test [P]
    - Quickstart scenarios → validation tasks
+   - UX acceptance criteria → accessibility and consistency tasks
 
-4. **Ordering**:
+4. **From Performance Goals**:
+   - Each budget or target → measurement task
+   - Critical paths → instrumentation or profiling tasks
+
+5. **Ordering**:
    - Setup → Tests → Models → Services → Endpoints → Polish
    - Dependencies block parallel execution
 
@@ -121,6 +136,8 @@ Task: "Integration test auth in tests/integration/test_auth.py"
 
 - [ ] All contracts have corresponding tests
 - [ ] All entities have model tasks
+- [ ] Accessibility and UX consistency tasks scheduled
+- [ ] Performance validation and monitoring tasks included
 - [ ] All tests come before implementation
 - [ ] Parallel tasks truly independent
 - [ ] Each task specifies exact file path

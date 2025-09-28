@@ -10,17 +10,19 @@
 1. Parse user description from Input
    → If empty: ERROR "No feature description provided"
 2. Extract key concepts from description
-   → Identify: actors, actions, data, constraints
+   → Identify: actors, actions, data, constraints, experience promises, performance expectations
 3. For each unclear aspect:
    → Mark with [NEEDS CLARIFICATION: specific question]
 4. Fill User Scenarios & Testing section
    → If no clear user flow: ERROR "Cannot determine user scenarios"
 5. Generate Functional Requirements
    → Each requirement must be testable
+   → Include quality, testing, and performance acceptance criteria or mark with NEEDS CLARIFICATION
    → Mark ambiguous requirements
 6. Identify Key Entities (if data involved)
 7. Run Review Checklist
    → If any [NEEDS CLARIFICATION]: WARN "Spec has uncertainties"
+   → Confirm constitution principles (quality, testing, experience, performance) are addressed or flagged
    → If implementation details found: ERROR "Remove tech details"
 8. Return: SUCCESS (spec ready for planning)
 ```
@@ -30,6 +32,7 @@
 ## ⚡ Quick Guidelines
 - ✅ Focus on WHAT users need and WHY
 - ❌ Avoid HOW to implement (no tech stack, APIs, code structure)
+- Ensure user experience and performance guardrails are recorded or explicitly marked as NEEDS CLARIFICATION
 - 👥 Written for business stakeholders, not developers
 
 ### Section Requirements
@@ -46,6 +49,8 @@ When creating this spec from a user prompt:
    - User types and permissions
    - Data retention/deletion policies  
    - Performance targets and scale
+   - Player experience consistency or UX references
+   - Testing expectations or quality gates
    - Error handling behaviors
    - Integration requirements
    - Security/compliance needs
@@ -92,12 +97,15 @@ When creating this spec from a user prompt:
 - [ ] Focused on user value and business needs
 - [ ] Written for non-technical stakeholders
 - [ ] All mandatory sections completed
+- [ ] Player experience expectations documented or marked for clarification
 
 ### Requirement Completeness
 - [ ] No [NEEDS CLARIFICATION] markers remain
 - [ ] Requirements are testable and unambiguous  
 - [ ] Success criteria are measurable
 - [ ] Scope is clearly bounded
+- [ ] Performance budgets or targets defined or marked for clarification
+- [ ] Testing expectations captured for each requirement
 - [ ] Dependencies and assumptions identified
 
 ---

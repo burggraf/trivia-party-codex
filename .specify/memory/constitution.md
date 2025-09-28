@@ -1,50 +1,62 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: 0.0.0 → 1.0.0
+Modified principles: none (initial release)
+Added sections: Core Principles; Experience & Quality Standards; Delivery Workflow; Governance
+Removed sections: none
+Templates requiring updates:
+- ✅ .specify/templates/plan-template.md
+- ✅ .specify/templates/spec-template.md
+- ✅ .specify/templates/tasks-template.md
+- ✅ .specify/templates/agent-file-template.md
+Follow-up TODOs: none
+-->
+
+# Trivia Party Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### Client-Side Only Code
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- MUST implement client-side only code. All applications are static web apps deployed to Cloudflare Pages with no server-side execution or Node APIs.
+- MUST never introduce server-side code in frontend projects; all logic runs purely in the browser environment.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### React Frontend with Modern Practices
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- MUST build frontend exclusively with React.
+- MUST leverage TypeScript with strict typing; usage of `any` type is prohibited.
+- MUST use shadcn components with Tailwind CSS for all UI elements ensuring consistent, accessible design.
+- MUST write modular React components with clear organization and maintainability.
+- MUST keep source files concise, aiming for no more than 250 lines per file.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### Backend via Supabase Only
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+- MUST use Supabase and the supabase.js client library exclusively for backend services.
+- MUST rely on Supabase database and enforce appropriate Row-Level Security (RLS) policies to protect data.
+- MUST utilize Supabase Auth for user authentication.
+- MUST use Supabase Storage, Realtime, and Edge Functions as needed.
+- MUST prefer Postgres functions called via `supabase.rpc()` over edge functions for data-related logic unless external API access or complex orchestrations justify edge functions.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### Code Quality and Simplicity
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- MUST favor simplicity over complexity in solutions.
+- MUST write small, clear, and easy-to-follow code.
+- MUST maintain readability, well-structured codebases, inline documentation for complex logic, and follow all linter and type-checking rules.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+## Experience & Quality Standards
+
+- MUST maintain a consistent design system based on Tailwind and shadcn components.
+- MUST validate all code with automated tests and static analysis.
+- MUST confirm accessibility and performance benchmarks in all UI components.
+
+## Delivery Workflow
+
+- MUST reference this constitution during all planning and implementation phases via Spec Kit slash commands.
+- MUST link plans and pull requests to relevant tasks that confirm adherence to these principles.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- Amendments to principles require consensus among contributors and documented impact analysis.
+- Versioning follows semantic versioning to track changes in project policies.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2025-09-28 | **Last Amended**: 2025-09-28
