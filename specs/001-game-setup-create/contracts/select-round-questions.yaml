@@ -1,0 +1,65 @@
+openapi: 3.1.0
+info:
+  title: select_round_questions RPC
+  version: 1.0.0
+servers:
+  - url: https://{project}.supabase.co
+paths:
+  /rest/v1/rpc/select_round_questions:
+    post:
+      summary: Pull a unique set of question IDs for a round respecting category filters.
+      operationId: selectRoundQuestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event_id
+                - round_index
+                - categories
+                - limit
+              properties:
+                event_id:
+                  type: string
+                  format: uuid
+                round_index:
+                  type: integer
+                  minimum: 0
+                categories:
+                  type: array
+                  items:
+                    type: string
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+      responses:
+        '200':
+          description: Question payload
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - question_ids
+                properties:
+                  question_ids:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+        '400':
+          description: Invalid input (categories empty or limit mismatch)
+        '409':
+          description: Unable to produce unique set given remaining pool
+      security:
+        - supabaseServiceRole: []
+components:
+  securitySchemes:
+    supabaseServiceRole:
+      type: apiKey
+      in: header
+      name: apikey
+      description: Supabase service role key required for backend-triggered RPC within RLS policy.

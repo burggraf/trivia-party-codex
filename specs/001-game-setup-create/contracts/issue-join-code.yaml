@@ -1,0 +1,53 @@
+openapi: 3.1.0
+info:
+  title: issue_join_code Edge Function
+  version: 1.0.0
+servers:
+  - url: https://{project}.supabase.co
+paths:
+  /functions/v1/issue_join_code:
+    post:
+      summary: Create a unique 6-character join code for an event and set expiry timestamp.
+      operationId: issueJoinCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event_id
+              properties:
+                event_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Join code issued
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - join_code
+                  - expires_at
+                properties:
+                  join_code:
+                    type: string
+                    pattern: '^[A-Z0-9]{6}$'
+                  expires_at:
+                    type: string
+                    format: date-time
+        '403':
+          description: Host not authorised for event
+        '409':
+          description: Active join code already exists
+      security:
+        - supabaseAccessToken: []
+components:
+  securitySchemes:
+    supabaseAccessToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Authenticated host session token.
