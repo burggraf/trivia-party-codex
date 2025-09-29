@@ -9,6 +9,11 @@ export default defineConfig({
     trace: 'retain-on-failure',
     video: 'retain-on-failure'
   },
+  webServer: {
+    command: 'pnpm run dev -- --host --port 5173',
+    port: 5173,
+    reuseExistingServer: !process.env.CI
+  },
   projects: [
     {
       name: 'chromium',
