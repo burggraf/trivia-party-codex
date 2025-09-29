@@ -1,7 +1,7 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useEventState } from '../shared/EventState';
-import { AnswerForm } from './components/AnswerForm';
+import { AnswerForm, type AnswerOption } from './components/AnswerForm';
 import { usePlayerRealtime } from './hooks/usePlayerRealtime';
 
 function formatRevealStatus(status: string) {
@@ -23,20 +23,8 @@ export function PlayerClientApp() {
   const [teamName, setTeamName] = useState<string>('');
   const [joinCode, setJoinCode] = useState<string>('');
   const [hasJoined, setHasJoined] = useState(false);
-
-  const questionOptions = useMemo(() => {
-    const firstRound = rounds[0];
-    const firstQuestion = firstRound?.questions[0];
-    if (!firstQuestion) {
-      return [];
-    }
-    return [
-      { id: 'a', label: 'Option A' },
-      { id: 'b', label: 'Option B' },
-      { id: 'c', label: 'Option C' },
-      { id: 'd', label: 'Option D' }
-    ];
-  }, [rounds]);
+  const [submissionState, setSubmissionState] = useState<'idle' | 'pending' | 'locked'>('idle');
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const realtime = usePlayerRealtime({ supabase, eventId: details.id, teamId });
 
@@ -45,8 +33,37 @@ export function PlayerClientApp() {
   const systemMessage = realtime?.systemMessage ?? null;
   const answerLocked = realtime?.answerLocked ?? false;
 
-  const prompt = questionPayload?.payload?.prompt ?? rounds[0]?.questions[0]?.prompt ?? 'Waiting for host…';
+  const currentRoundIndex = questionPayload?.roundIndex ?? 0;
+  const currentRound = rounds[currentRoundIndex];
   const questionMeta = questionPayload?.payload;
+  const questionId = questionMeta?.questionId ?? currentRound?.questions[questionPayload?.questionIndex ?? 0]?.id ?? null;
+
+  const questionOptions: AnswerOption[] = useMemo(() => {
+    if (questionMeta?.options && Array.isArray(questionMeta.options)) {
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+      return questionMeta.options.map((label: unknown, index: number) => ({
+        id: letters[index]?.toLowerCase() ?? `opt-${index}`,
+        label: typeof label === 'string' ? label : `Option ${letters[index] ?? index + 1}`
+      }));
+    }
+
+    const fallbackQuestion = currentRound?.questions[questionPayload?.questionIndex ?? 0];
+    if (!fallbackQuestion) {
+      return [];
+    }
+
+    return ['A', 'B', 'C', 'D'].map((letter) => ({
+      id: letter.toLowerCase(),
+      label: fallbackQuestion.prompt ? `${letter}: ${fallbackQuestion.prompt.split(' ')[0]} option` : `Option ${letter}`
+    }));
+  }, [questionMeta?.options, currentRound, questionPayload?.questionIndex]);
+
+  const prompt = questionMeta?.prompt ?? rounds[currentRoundIndex]?.questions[questionPayload?.questionIndex ?? 0]?.prompt ?? 'Waiting for host…';
+
+  useEffect(() => {
+    setSubmissionState('idle');
+    setSubmissionError(null);
+  }, [questionId]);
 
   const handleJoin = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,6 +73,49 @@ export function PlayerClientApp() {
     const normalisedTeamId = teamName.trim().toLowerCase().replace(/\s+/g, '-');
     setTeamId(normalisedTeamId);
     setHasJoined(true);
+    setSubmissionState('idle');
+    setSubmissionError(null);
+  };
+
+  const handleSubmitAnswer = async (optionId: string) => {
+    if (!hasJoined) {
+      throw new Error('Join the event before submitting an answer.');
+    }
+
+    setSubmissionError(null);
+    setSubmissionState('pending');
+
+    const roundId = currentRound?.id ?? null;
+    const usableQuestionId = questionId;
+
+    const shouldPersist = Boolean(supabase && roundId && usableQuestionId && teamId);
+
+    try {
+      if (shouldPersist && supabase) {
+        const { error } = await supabase
+          .from('answer_submissions')
+          .insert({
+            event_id: details.id,
+            round_id: roundId,
+            question_id: usableQuestionId,
+            team_id: teamId,
+            selected_option: optionId,
+            correct: false
+          });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+      }
+
+      realtime?.lockAnswer();
+      setSubmissionState('locked');
+    } catch (error) {
+      console.error('Failed to submit answer', error);
+      setSubmissionState('idle');
+      setSubmissionError('Unable to submit answer. Please try again.');
+      throw error instanceof Error ? error : new Error('Answer submission failed');
+    }
   };
 
   return (
@@ -123,16 +183,17 @@ export function PlayerClientApp() {
       </div>
 
       <AnswerForm
+        questionId={questionId}
         options={questionOptions}
-        disabled={!hasJoined || answerLocked || status !== 'connected'}
-        onSubmit={(optionId) => {
-          realtime?.lockAnswer();
-          console.info('Team submitted answer', optionId);
-        }}
+        disabled={!hasJoined || status !== 'connected'}
+        locked={answerLocked || submissionState === 'locked'}
+        pending={submissionState === 'pending'}
+        onSubmit={handleSubmitAnswer}
         lockedMessage="Answer captured. Cheer until the next prompt!"
+        error={submissionError}
       />
 
-      {answerLocked ? (
+      {answerLocked || submissionState === 'locked' ? (
         <div className="rounded border border-emerald-400/40 bg-emerald-500/10 p-3 text-xs text-emerald-200" data-testid="player-answer-locked">
           First answer recorded. Waiting for host…
         </div>
