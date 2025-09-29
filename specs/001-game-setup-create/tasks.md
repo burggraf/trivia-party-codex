@@ -38,7 +38,7 @@
 - [X] T028 Implement player realtime hook `apps/web/src/features/player-client/hooks/usePlayerRealtime.ts` enforcing first-answer lock logic. (Depends on T026, T024)
 - [X] T029 Build event setup page in `apps/web/src/features/event-setup/EventSetupPage.tsx` supporting configuration form and Supabase mutations. (Depends on T024, T020)
 - [X] T030 Build question preview/editor in `apps/web/src/features/event-setup/QuestionPreviewPanel.tsx` including removal and replacement flow. (Depends on T029, T017)
-- [ ] T031 Build join code + QR display component in `apps/web/src/features/event-setup/components/JoinCodeDisplay.tsx` using edge function call. (Depends on T019, T029)
+- [X] T031 Build join code + QR display component in `apps/web/src/features/event-setup/components/JoinCodeDisplay.tsx` using edge function call. (Depends on T019, T029)
 - [ ] T032 Build host live control panel in `apps/web/src/features/live-control/HostControlPanel.tsx` enabling start/pause/resume/end actions. (Depends on T027, T029)
 - [ ] T033 Build connection guard UI in `apps/web/src/features/live-control/components/ConnectionGuard.tsx` reacting to realtime outages. (Depends on T032)
 - [ ] T034 Build scoreboard display in `apps/web/src/features/live-control/ScoreboardDisplay.tsx` rendering highlights and tie states. (Depends on T032)
