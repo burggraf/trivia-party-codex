@@ -1,0 +1,51 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Create trivia event" [level=1] [ref=e6]
+      - paragraph [ref=e7]: Configure rounds, question counts, and categories before inviting teams.
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - text: Event name
+        - textbox "Event name" [ref=e10]: Sunday Trivia
+      - generic [ref=e11]:
+        - text: Venue
+        - textbox "Venue" [ref=e12]
+      - generic [ref=e13]:
+        - text: Scheduled start (optional)
+        - textbox "Scheduled start (optional)" [ref=e14]
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - text: Rounds
+          - textbox "Rounds" [ref=e17]: "3"
+        - generic [ref=e18]:
+          - text: Questions per round
+          - textbox "Questions per round" [ref=e19]: "5"
+      - generic [ref=e20]:
+        - generic [ref=e21]: Categories
+        - generic [ref=e22]:
+          - button "Select categories" [expanded] [ref=e23] [cursor=pointer]
+          - generic [ref=e24]: Science, History
+        - listbox "Available trivia categories" [ref=e25]:
+          - option "Science" [selected] [ref=e26]
+          - option "History" [selected] [ref=e27]
+          - option "Sports" [ref=e28]
+          - option "Pop Culture" [ref=e29]
+          - option "Geography" [ref=e30]
+      - generic [ref=e31]:
+        - button "Save event" [ref=e32] [cursor=pointer]
+        - button "Create new event" [ref=e33] [cursor=pointer]
+        - button "Start game" [ref=e34] [cursor=pointer]
+        - link "Manage rounds" [ref=e35]:
+          - /url: "#rounds"
+        - button "View scoreboard" [ref=e36] [cursor=pointer]
+    - generic [ref=e37]:
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - heading "Join code" [level=2] [ref=e40]
+          - paragraph [ref=e41]: Share with teams so they can join this event.
+        - button "Generate code" [ref=e42] [cursor=pointer]
+      - paragraph [ref=e43]: Join code will be generated after you save the event configuration.
+```

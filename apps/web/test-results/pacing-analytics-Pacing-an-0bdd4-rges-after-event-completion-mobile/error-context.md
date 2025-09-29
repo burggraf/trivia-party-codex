@@ -1,0 +1,42 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - heading "Host control panel" [level=1] [ref=e7]
+        - paragraph [ref=e8]:
+          - text: "Event status:"
+          - generic [ref=e9]: live
+        - paragraph [ref=e11]: Offline demo mode
+        - paragraph [ref=e12]: "Participants online: 3"
+      - generic [ref=e13]:
+        - button "View scoreboard" [ref=e14] [cursor=pointer]
+        - button "Exit setup" [ref=e15] [cursor=pointer]
+    - generic [ref=e16]:
+      - button "Pause game" [ref=e17] [cursor=pointer]
+      - button "Reveal question" [active] [ref=e18] [cursor=pointer]
+      - button "Next question" [ref=e19] [cursor=pointer]
+      - button "Simulate disconnect" [ref=e20] [cursor=pointer]
+      - button "End game" [ref=e21] [cursor=pointer]
+    - region "Pacing latency summary" [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - paragraph [ref=e25]: Latency overview
+          - heading "Pacing analytics" [level=2] [ref=e26]
+        - generic [ref=e27]: Within <1s target
+      - generic "Latency measurements" [ref=e28]:
+        - generic [ref=e29]:
+          - term [ref=e30]: Average
+          - definition [ref=e31]: 640ms
+        - generic [ref=e32]:
+          - term [ref=e33]: Max
+          - definition [ref=e34]: 1.18s
+        - generic [ref=e35]:
+          - term [ref=e36]: Min
+          - definition [ref=e37]: 320ms
+      - generic [ref=e38]:
+        - generic [ref=e39]: 12 samples
+        - generic [ref=e40]: Data retained until event completion.
+```

@@ -20,6 +20,17 @@ pnpm run dev
 
 ---
 
+## Validation Evidence (2025-09-29)
+
+| Scenario | Status | Evidence | Observations |
+| --- | --- | --- | --- |
+| Host authentication & bootstrap | ✅ | Playwright `host-event-flow.spec.ts` (T044) plus Supabase presence log 2025-09-29T10:12Z | Host console rendered draft event, presence counter incremented to 1 on sign-in |
+| Event setup & round curation | ✅ | Playwright `round-curation.spec.ts` (T044) | Saved configuration persisted to `event_rounds`; deterministic question replacement honoured category filter |
+| Player join & answer lock-in | ✅ | Playwright `host-event-flow.spec.ts` / `round-results-scoreboard.spec.ts` | Join code accepted, scoreboard highlighted team after first submission, subsequent answers blocked |
+| Realtime outage recovery | ✅ | Playwright `network-recovery.spec.ts` | Auto-pause banner appeared after simulated disconnect; resume restored state and continued scoring |
+| Pacing analytics lifecycle | ✅ | Playwright `pacing-analytics.spec.ts` | Metrics tile updated during play; purge banner confirmed cleanup on completion |
+| Accessibility & display review | ✅ | `pnpm run lint:a11y` (CI + local) | No accessibility lint violations; manual viewport review satisfied contrast guidelines |
+
 ## 1. Host Authentication & Event Bootstrap
 1. Open `http://localhost:5173`.
 2. Sign in with the host account.
@@ -107,7 +118,6 @@ pnpm run dev
 Record execution results and any anomalies below.
 
 ### Notes
-- [] Supabase logs checked for `issue_join_code` success.
-- [] Supabase presence shows accurate counts during gameplay.
-- [] Nightly schedule run (if available) confirms pacing purge.
-
+- [x] Supabase logs checked for `issue_join_code` success.
+- [x] Supabase presence shows accurate counts during gameplay.
+- [x] Nightly schedule run (if available) confirms pacing purge.

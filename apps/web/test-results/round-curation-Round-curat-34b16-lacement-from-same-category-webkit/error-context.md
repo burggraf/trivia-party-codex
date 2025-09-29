@@ -1,0 +1,147 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading "Round management" [level=1] [ref=e6]
+      - link "Back to setup" [ref=e7]:
+        - /url: "#setup"
+    - region "Round question preview" [ref=e8]:
+      - heading "Round question preview" [level=2] [ref=e9]
+      - article "Round 1 with 5 questions" [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]:
+            - paragraph [ref=e13]: Round 1
+            - heading "Round 1" [level=3] [ref=e14]
+          - generic "Selected categories" [ref=e15]:
+            - generic [ref=e16]: Science
+            - generic [ref=e17]: History
+        - generic [ref=e18]:
+          - group "Question 1" [ref=e19]:
+            - generic [ref=e20]:
+              - generic [ref=e21]:
+                - generic [ref=e22]: Question 1
+                - generic [ref=e23]: Science
+              - button "Replace question" [ref=e24] [cursor=pointer]
+            - paragraph [ref=e25]: Original question text for review
+          - group "Question 2" [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e28]:
+                - generic [ref=e29]: Question 2
+                - generic [ref=e30]: History
+              - button "Replace question" [ref=e31] [cursor=pointer]
+            - paragraph [ref=e32]: Sample question 2
+          - group "Question 3" [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e35]:
+                - generic [ref=e36]: Question 3
+                - generic [ref=e37]: Science
+              - button "Replace question" [ref=e38] [cursor=pointer]
+            - paragraph [ref=e39]: Sample question 3
+          - group "Question 4" [ref=e40]:
+            - generic [ref=e41]:
+              - generic [ref=e42]:
+                - generic [ref=e43]: Question 4
+                - generic [ref=e44]: History
+              - button "Replace question" [ref=e45] [cursor=pointer]
+            - paragraph [ref=e46]: Sample question 4
+          - group "Question 5" [ref=e47]:
+            - generic [ref=e48]:
+              - generic [ref=e49]:
+                - generic [ref=e50]: Question 5
+                - generic [ref=e51]: Science
+              - button "Replace question" [ref=e52] [cursor=pointer]
+            - paragraph [ref=e53]: Sample question 5
+        - generic [ref=e54]: 5 questions scheduled • replacements keep category consistency
+      - article "Round 2 with 5 questions" [ref=e55]:
+        - generic [ref=e56]:
+          - generic [ref=e57]:
+            - paragraph [ref=e58]: Round 2
+            - heading "Round 2" [level=3] [ref=e59]
+          - generic "Selected categories" [ref=e60]:
+            - generic [ref=e61]: Science
+            - generic [ref=e62]: History
+        - generic [ref=e63]:
+          - group "Question 1" [ref=e64]:
+            - generic [ref=e65]:
+              - generic [ref=e66]:
+                - generic [ref=e67]: Question 1
+                - generic [ref=e68]: Science
+              - button "Replace question" [ref=e69] [cursor=pointer]
+            - paragraph [ref=e70]: Original question text for review
+          - group "Question 2" [ref=e71]:
+            - generic [ref=e72]:
+              - generic [ref=e73]:
+                - generic [ref=e74]: Question 2
+                - generic [ref=e75]: History
+              - button "Replace question" [ref=e76] [cursor=pointer]
+            - paragraph [ref=e77]: Sample question 2
+          - group "Question 3" [ref=e78]:
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - generic [ref=e81]: Question 3
+                - generic [ref=e82]: Science
+              - button "Replace question" [ref=e83] [cursor=pointer]
+            - paragraph [ref=e84]: Sample question 3
+          - group "Question 4" [ref=e85]:
+            - generic [ref=e86]:
+              - generic [ref=e87]:
+                - generic [ref=e88]: Question 4
+                - generic [ref=e89]: History
+              - button "Replace question" [ref=e90] [cursor=pointer]
+            - paragraph [ref=e91]: Sample question 4
+          - group "Question 5" [ref=e92]:
+            - generic [ref=e93]:
+              - generic [ref=e94]:
+                - generic [ref=e95]: Question 5
+                - generic [ref=e96]: Science
+              - button "Replace question" [ref=e97] [cursor=pointer]
+            - paragraph [ref=e98]: Sample question 5
+        - generic [ref=e99]: 5 questions scheduled • replacements keep category consistency
+      - article "Round 3 with 5 questions" [ref=e100]:
+        - generic [ref=e101]:
+          - generic [ref=e102]:
+            - paragraph [ref=e103]: Round 3
+            - heading "Round 3" [level=3] [ref=e104]
+          - generic "Selected categories" [ref=e105]:
+            - generic [ref=e106]: Science
+            - generic [ref=e107]: History
+        - generic [ref=e108]:
+          - group "Question 1" [ref=e109]:
+            - generic [ref=e110]:
+              - generic [ref=e111]:
+                - generic [ref=e112]: Question 1
+                - generic [ref=e113]: Science
+              - button "Replace question" [ref=e114] [cursor=pointer]
+            - paragraph [ref=e115]: Original question text for review
+          - group "Question 2" [ref=e116]:
+            - generic [ref=e117]:
+              - generic [ref=e118]:
+                - generic [ref=e119]: Question 2
+                - generic [ref=e120]: History
+              - button "Replace question" [ref=e121] [cursor=pointer]
+            - paragraph [ref=e122]: Sample question 2
+          - group "Question 3" [ref=e123]:
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - generic [ref=e126]: Question 3
+                - generic [ref=e127]: Science
+              - button "Replace question" [ref=e128] [cursor=pointer]
+            - paragraph [ref=e129]: Sample question 3
+          - group "Question 4" [ref=e130]:
+            - generic [ref=e131]:
+              - generic [ref=e132]:
+                - generic [ref=e133]: Question 4
+                - generic [ref=e134]: History
+              - button "Replace question" [ref=e135] [cursor=pointer]
+            - paragraph [ref=e136]: Sample question 4
+          - group "Question 5" [ref=e137]:
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - generic [ref=e140]: Question 5
+                - generic [ref=e141]: Science
+              - button "Replace question" [ref=e142] [cursor=pointer]
+            - paragraph [ref=e143]: Sample question 5
+        - generic [ref=e144]: 5 questions scheduled • replacements keep category consistency
+```

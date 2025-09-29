@@ -13,7 +13,7 @@
     "test": "vitest",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:contract": "vitest run --config vitest.contract.config.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "cross-env VITE_SUPABASE_DISABLED=true playwright test",
     "test:performance": "vitest run --config vitest.performance.config.ts",
     "test:ci": "pnpm lint && pnpm test:unit && pnpm test:contract && pnpm test:e2e && pnpm test:performance"
   },
@@ -46,6 +46,7 @@
     "@typescript-eslint/parser": "^8.8.1",
     "@vitejs/plugin-react": "^4.3.0",
     "autoprefixer": "^10.4.19",
+    "cross-env": "^7.0.3",
     "eslint": "^9.9.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-jsx-a11y": "^6.9.0",
