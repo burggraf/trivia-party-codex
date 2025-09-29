@@ -3,7 +3,7 @@ import QRCodeStyling from 'qr-code-styling';
 import { useEventState } from '../../shared/EventState';
 
 export function JoinCodeDisplay() {
-  const { details, issueJoinCode } = useEventState();
+  const { details, issueJoinCode, saveEvent } = useEventState();
   const [error, setError] = useState<string | null>(null);
   const [isIssuing, setIsIssuing] = useState(false);
   const qrContainerRef = useRef<HTMLDivElement | null>(null);
@@ -56,6 +56,17 @@ export function JoinCodeDisplay() {
     setError(null);
 
     try {
+      if (details.status === 'draft') {
+        await saveEvent({
+          name: details.name,
+          venue: details.venue,
+          scheduledAt: details.scheduledAt,
+          roundCount: details.roundCount,
+          questionsPerRound: details.questionsPerRound,
+          categories: details.categories
+        });
+      }
+
       await issueJoinCode();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to issue join code.';
@@ -76,7 +87,7 @@ export function JoinCodeDisplay() {
           type="button"
           className="rounded border border-gray-300 bg-white px-3 py-2 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
           onClick={handleIssueJoinCode}
-          disabled={isIssuing}
+          disabled={isIssuing || !details.name.trim()}
         >
           {details.joinCode ? (isIssuing ? 'Refreshing…' : 'Regenerate code') : 'Generate code'}
         </button>
@@ -112,4 +123,3 @@ export function JoinCodeDisplay() {
     </section>
   );
 }
-
