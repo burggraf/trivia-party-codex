@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { SupabaseClient, RealtimeChannel } from '@supabase/supabase-js';
 import { validateRealtimePayload, type RealtimeEnvelope } from '../../../../../../packages/shared/supabase/contracts/realtimePayloads';
 
 export type PlayerConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error';
 
 export interface UsePlayerRealtimeOptions {
-  supabase: SupabaseClient;
+  supabase: SupabaseClient | null;
   eventId: string;
   teamId: string;
 }
@@ -30,9 +29,13 @@ export function usePlayerRealtime({ supabase, eventId, teamId }: UsePlayerRealti
 
   const channelRef = useRef<RealtimeChannel | null>(null);
 
-  const topic = useMemo(() => `realtime:events:${eventId}`, [eventId]);
+  const topic = useMemo(() => (eventId ? `realtime:events:${eventId}` : null), [eventId]);
 
   useEffect(() => {
+    if (!supabase || !topic || !teamId) {
+      return () => undefined;
+    }
+
     setState((prev) => ({ ...prev, status: 'connecting' }));
     const channel = supabase.channel(topic, { config: { broadcast: { ack: false } } });
     channelRef.current = channel;
@@ -87,7 +90,7 @@ export function usePlayerRealtime({ supabase, eventId, teamId }: UsePlayerRealti
         answerLocked: false
       });
     };
-  }, [supabase, topic]);
+  }, [supabase, topic, teamId]);
 
   const lockAnswer = () => {
     setState((prev) => ({ ...prev, answerLocked: true }));

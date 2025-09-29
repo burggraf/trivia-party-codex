@@ -43,7 +43,7 @@
 - [X] T033 Build connection guard UI in `apps/web/src/features/live-control/components/ConnectionGuard.tsx` reacting to realtime outages. (Depends on T032)
 - [X] T034 Build scoreboard display in `apps/web/src/features/live-control/ScoreboardDisplay.tsx` rendering highlights and tie states. (Depends on T032)
 - [X] T035 Build pacing dashboard overlay in `apps/web/src/features/live-control/components/PacingDashboard.tsx` consuming analytics helper. (Depends on T025, T032)
-- [ ] T036 Build player client shell in `apps/web/src/features/player-client/PlayerClientApp.tsx` for join flow and question display. (Depends on T028)
+- [X] T036 Build player client shell in `apps/web/src/features/player-client/PlayerClientApp.tsx` for join flow and question display. (Depends on T028)
 - [ ] T037 Implement player answer form lock-in component in `apps/web/src/features/player-client/components/AnswerForm.tsx`. (Depends on T036)
 - [ ] T038 Implement event completion action in `apps/web/src/features/live-control/actions/completeEvent.ts` calling purge function and broadcasting final standings. (Depends on T025, T032)
 
