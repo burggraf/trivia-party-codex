@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { EventStateProvider, useEventState } from './features/shared/EventState';
+import { HostAuthGate } from './features/auth/HostAuthGate';
 import { EventSetupPage } from './features/event-setup/EventSetupPage';
 import { QuestionPreviewPanel } from './features/event-setup/QuestionPreviewPanel';
 import { HostControlPanel } from './features/live-control/HostControlPanel';
@@ -68,9 +69,11 @@ function AppContent(): JSX.Element {
 
 function App(): JSX.Element {
   return (
-    <EventStateProvider>
-      <AppContent />
-    </EventStateProvider>
+    <HostAuthGate>
+      <EventStateProvider>
+        <AppContent />
+      </EventStateProvider>
+    </HostAuthGate>
   );
 }
 

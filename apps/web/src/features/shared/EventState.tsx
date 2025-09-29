@@ -24,7 +24,7 @@ const FALLBACK_EVENT_ID = '11111111-1111-1111-1111-111111111111';
 
 let cachedSupabase: SupabaseClient | null | undefined;
 
-function getSupabaseClient(): SupabaseClient | null {
+export function getSupabaseClient(): SupabaseClient | null {
   if (cachedSupabase !== undefined) {
     return cachedSupabase;
   }
