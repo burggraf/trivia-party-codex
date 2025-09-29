@@ -28,7 +28,9 @@ export function HostControlPanel({ onExit, onViewScoreboard }: HostControlPanelP
     analyticsCleared,
     finalMessage,
     simulateDisconnect,
-    connectionLost
+    connectionLost,
+    pacingSummary,
+    refreshPacingMetrics
   } = useEventState();
 
   const status = details.status;
@@ -216,11 +218,13 @@ export function HostControlPanel({ onExit, onViewScoreboard }: HostControlPanelP
         </button>
       </div>
 
-      <ConnectionGuard
-        connectionLost={connectionLost}
-        onRetry={handleResume}
+      <ConnectionGuard connectionLost={connectionLost} onRetry={handleResume} />
+      <PacingDashboard
+        visible={pacingVisible}
+        summary={pacingSummary}
+        analyticsCleared={analyticsCleared}
+        onRefresh={refreshPacingMetrics}
       />
-      <PacingDashboard visible={pacingVisible} />
 
       {actionError ? (
         <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">

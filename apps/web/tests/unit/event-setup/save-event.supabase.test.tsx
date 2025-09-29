@@ -79,18 +79,19 @@ const mockEvent = {
 const listRoundsMock = vi.fn();
 const updateEventMock = vi.fn();
 const getEventMock = vi.fn();
+const listEventMetricsMock = vi.fn();
 
 vi.mock('../../../../../packages/shared/supabase/client/event-service', () => ({
   createEventService: vi.fn(() => ({
     getEvent: getEventMock,
     listRounds: listRoundsMock,
+    listEventMetrics: listEventMetricsMock,
     updateEvent: updateEventMock,
     createTeam: vi.fn(),
     createPlayerSession: vi.fn(),
     recordAnswer: vi.fn(),
     upsertBroadcastSnapshot: vi.fn(),
-    fetchBroadcastSnapshot: vi.fn(),
-    listEventMetrics: vi.fn()
+    fetchBroadcastSnapshot: vi.fn()
   }))
 }));
 
@@ -116,6 +117,7 @@ describe('Event setup saving flow', () => {
     listRoundsMock.mockReset();
     updateEventMock.mockReset();
     getEventMock.mockReset();
+    listEventMetricsMock.mockReset();
 
     listRoundsMock.mockResolvedValue([]);
     updateEventMock.mockResolvedValue({
@@ -124,6 +126,7 @@ describe('Event setup saving flow', () => {
       questions_per_round: 4
     });
     getEventMock.mockResolvedValue(mockEvent);
+    listEventMetricsMock.mockResolvedValue([]);
     rpcMock.mockResolvedValue({ data: [{ question_id: 'question-1' }, { question_id: 'question-2' }, { question_id: 'question-3' }, { question_id: 'question-4' }], error: null });
     eventRoundsUpsertMock.mockResolvedValue({ data: null, error: null });
     eventRoundsSelectOrderMock.mockResolvedValue({ data: [], error: null });

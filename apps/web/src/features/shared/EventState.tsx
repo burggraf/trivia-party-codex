@@ -13,6 +13,10 @@ import type { GameEvent } from '../../../../../packages/shared/supabase/schemas/
 import type { EventRound } from '../../../../../packages/shared/supabase/schemas/event-round';
 import { validateIssueJoinCodeResponse } from '../../../../../packages/shared/supabase/contracts/issueJoinCode';
 import { validateSelectRoundQuestionsResponse } from '../../../../../packages/shared/supabase/contracts/selectRoundQuestions';
+import {
+  summarisePacingMetrics,
+  type PacingSummary
+} from '../../../../../packages/shared/analytics/pacing';
 
 const DEFAULT_CATEGORIES = ['Science', 'History', 'Sports', 'Pop Culture'];
 const FALLBACK_EVENT_ID = '11111111-1111-1111-1111-111111111111';
@@ -110,6 +114,7 @@ export interface EventStateContextValue {
   pacingVisible: boolean;
   analyticsCleared: boolean;
   finalMessage: string | null;
+  pacingSummary: PacingSummary;
   refreshEvent: () => Promise<void>;
   saveEvent: (input: SaveEventInput) => Promise<void>;
   issueJoinCode: () => Promise<{ joinCode: string; expiresAt: string }>;
@@ -119,9 +124,10 @@ export interface EventStateContextValue {
   resumeEvent: () => Promise<void>;
   nextQuestion: () => void;
   revealQuestion: () => void;
-  endEvent: () => void;
+  endEvent: () => Promise<void>;
   simulateDisconnect: () => void;
   resumeFromDisconnect: () => void;
+  refreshPacingMetrics: () => Promise<void>;
 }
 
 const SCOREBOARD_TEMPLATE: ScoreEntryState[] = [
@@ -132,6 +138,13 @@ const SCOREBOARD_TEMPLATE: ScoreEntryState[] = [
 
 const TIE_TEAM_IDS = ['team-comet', 'team-aurora'];
 
+const SAMPLE_PACING_SUMMARY: PacingSummary = {
+  count: 12,
+  averageMs: 640,
+  maxMs: 1180,
+  minMs: 320
+};
+
 interface EventStateInternal {
   details: EventDetailsState;
   rounds: RoundState[];
@@ -140,6 +153,7 @@ interface EventStateInternal {
   pacingVisible: boolean;
   analyticsCleared: boolean;
   finalMessage: string | null;
+  pacingSummary: PacingSummary;
 }
 
 const EventStateContext = createContext<EventStateContextValue | undefined>(undefined);
@@ -338,7 +352,8 @@ function createInitialState(eventId: string): EventStateInternal {
     connectionLost: false,
     pacingVisible: false,
     analyticsCleared: false,
-    finalMessage: null
+    finalMessage: null,
+    pacingSummary: SAMPLE_PACING_SUMMARY
   } satisfies EventStateInternal;
 }
 
@@ -437,6 +452,14 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       const mappedRounds = rounds.map((round) => mapRound(round, questionMap));
       const categories = collectCategories(mappedRounds);
 
+      let summary: PacingSummary = SAMPLE_PACING_SUMMARY;
+      try {
+        const metrics = await eventService.listEventMetrics(resolvedEventId);
+        summary = summarisePacingMetrics(metrics);
+      } catch (metricsError) {
+        console.error('Failed to load pacing metrics from Supabase', metricsError);
+      }
+
       setState((prev) => {
         const nextDetails = mergeEventDetails(event, prev.details);
         return {
@@ -449,7 +472,9 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
                 ? prev.details.categories
                 : DEFAULT_CATEGORIES.slice(0, 2)
           },
-          rounds: mappedRounds
+          rounds: mappedRounds,
+          pacingSummary: summary,
+          analyticsCleared: summary.count === 0 ? prev.analyticsCleared : false
         } satisfies EventStateInternal;
       });
     } catch (error) {
@@ -468,6 +493,28 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
   const refreshEvent = useCallback(async () => {
     await loadEventData();
   }, [loadEventData]);
+
+  const refreshPacingMetrics = useCallback(async () => {
+    if (!eventService) {
+      setState((prev) => ({
+        ...prev,
+        pacingSummary: SAMPLE_PACING_SUMMARY
+      }));
+      return;
+    }
+
+    try {
+      const metrics = await eventService.listEventMetrics(state.details.id);
+      const summary = summarisePacingMetrics(metrics);
+      setState((prev) => ({
+        ...prev,
+        pacingSummary: summary,
+        analyticsCleared: summary.count === 0 ? prev.analyticsCleared : false
+      }));
+    } catch (error) {
+      console.error('Failed to refresh pacing metrics', error);
+    }
+  }, [eventService, state.details.id]);
 
   const saveEvent = useCallback(
     async (input: SaveEventInput) => {
@@ -494,7 +541,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
           scoresUpdated: false,
           analyticsCleared: false,
           pacingVisible: false,
-          finalMessage: null
+          finalMessage: null,
+          pacingSummary: SAMPLE_PACING_SUMMARY
         }));
         return;
       }
@@ -863,6 +911,7 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       pacingVisible: state.pacingVisible,
       analyticsCleared: state.analyticsCleared,
       finalMessage: state.finalMessage,
+      pacingSummary: state.pacingSummary,
       refreshEvent,
       saveEvent,
       issueJoinCode,
@@ -874,7 +923,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       revealQuestion,
       endEvent,
       simulateDisconnect,
-      resumeFromDisconnect
+      resumeFromDisconnect,
+      refreshPacingMetrics
     }),
     [
       supabase,
@@ -885,6 +935,7 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       state.pacingVisible,
       state.analyticsCleared,
       state.finalMessage,
+      state.pacingSummary,
       refreshEvent,
       saveEvent,
       issueJoinCode,
@@ -896,7 +947,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       revealQuestion,
       endEvent,
       simulateDisconnect,
-      resumeFromDisconnect
+      resumeFromDisconnect,
+      refreshPacingMetrics
     ]
   );
 
