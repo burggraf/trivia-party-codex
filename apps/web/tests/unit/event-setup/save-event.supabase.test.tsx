@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 vi.stubEnv('VITE_SUPABASE_URL', 'https://stub.supabase.co');
 vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'stub-anon-key');
@@ -54,7 +55,21 @@ const mockSupabaseClient = {
   rpc: rpcMock,
   functions: {
     invoke: vi.fn().mockResolvedValue({ data: { join_code: 'ABC123', expires_at: new Date().toISOString() }, error: null })
-  }
+  },
+  channel: vi.fn(() => {
+    const channelMock = {
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn((callback?: (status: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'CLOSED') => void) => {
+        callback?.('SUBSCRIBED');
+        return Promise.resolve({ data: { status: 'SUBSCRIBED' } });
+      }),
+      presenceState: vi.fn(() => ({} as Record<string, unknown>)),
+      track: vi.fn().mockResolvedValue({}),
+      unsubscribe: vi.fn().mockResolvedValue({})
+    } satisfies Partial<RealtimeChannel> & Record<string, unknown>;
+
+    return channelMock as unknown as RealtimeChannel;
+  })
 };
 
 vi.mock('@supabase/supabase-js', () => ({

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { purgeEventAnalytics, summarisePacingMetrics } from '../../../../../../packages/shared/analytics/pacing';
+import { purgeEventAnalytics } from '../../../../../../packages/shared/analytics/pacing';
 import type { RealtimeLiveSession } from '../../../../../../packages/shared/supabase/realtime-live-session';
 
 export async function completeEvent(

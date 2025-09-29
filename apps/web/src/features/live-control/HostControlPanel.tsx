@@ -30,7 +30,10 @@ export function HostControlPanel({ onExit, onViewScoreboard }: HostControlPanelP
     simulateDisconnect,
     connectionLost,
     pacingSummary,
-    refreshPacingMetrics
+    refreshPacingMetrics,
+    presenceCount,
+    realtimeError,
+    clearRealtimeError
   } = useEventState();
 
   const status = details.status;
@@ -132,6 +135,7 @@ export function HostControlPanel({ onExit, onViewScoreboard }: HostControlPanelP
           <p className="text-xs text-gray-400">
             {supabase ? 'Connected to Supabase' : 'Offline demo mode'}
           </p>
+          <p className="text-xs text-gray-400">Participants online: {presenceCount}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -229,6 +233,19 @@ export function HostControlPanel({ onExit, onViewScoreboard }: HostControlPanelP
       {actionError ? (
         <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {actionError}
+        </div>
+      ) : null}
+
+      {realtimeError ? (
+        <div className="flex items-start justify-between gap-3 rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+          <span>{realtimeError}</span>
+          <button
+            type="button"
+            className="rounded border border-amber-300 px-2 py-1 text-[11px] font-semibold text-amber-700"
+            onClick={clearRealtimeError}
+          >
+            Dismiss
+          </button>
         </div>
       ) : null}
 

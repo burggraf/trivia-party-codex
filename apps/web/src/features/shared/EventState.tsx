@@ -4,10 +4,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode
 } from 'react';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js';
 import { createEventService } from '../../../../../packages/shared/supabase/client/event-service';
 import type { GameEvent } from '../../../../../packages/shared/supabase/schemas/game-event';
 import type { EventRound } from '../../../../../packages/shared/supabase/schemas/event-round';
@@ -115,6 +116,8 @@ export interface EventStateContextValue {
   analyticsCleared: boolean;
   finalMessage: string | null;
   pacingSummary: PacingSummary;
+  realtimeError: string | null;
+  presenceCount: number;
   refreshEvent: () => Promise<void>;
   saveEvent: (input: SaveEventInput) => Promise<void>;
   issueJoinCode: () => Promise<{ joinCode: string; expiresAt: string }>;
@@ -128,6 +131,7 @@ export interface EventStateContextValue {
   simulateDisconnect: () => void;
   resumeFromDisconnect: () => void;
   refreshPacingMetrics: () => Promise<void>;
+  clearRealtimeError: () => void;
 }
 
 const SCOREBOARD_TEMPLATE: ScoreEntryState[] = [
@@ -145,6 +149,8 @@ const SAMPLE_PACING_SUMMARY: PacingSummary = {
   minMs: 320
 };
 
+const SAMPLE_PRESENCE_COUNT = 3;
+
 interface EventStateInternal {
   details: EventDetailsState;
   rounds: RoundState[];
@@ -154,6 +160,8 @@ interface EventStateInternal {
   analyticsCleared: boolean;
   finalMessage: string | null;
   pacingSummary: PacingSummary;
+  presenceCount: number;
+  realtimeError: string | null;
 }
 
 const EventStateContext = createContext<EventStateContextValue | undefined>(undefined);
@@ -353,7 +361,9 @@ function createInitialState(eventId: string): EventStateInternal {
     pacingVisible: false,
     analyticsCleared: false,
     finalMessage: null,
-    pacingSummary: SAMPLE_PACING_SUMMARY
+    pacingSummary: SAMPLE_PACING_SUMMARY,
+    presenceCount: SAMPLE_PRESENCE_COUNT,
+    realtimeError: null
   } satisfies EventStateInternal;
 }
 
@@ -435,6 +445,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
   const eventService = useMemo(() => (supabase ? createEventService(supabase) : null), [supabase]);
   const [state, setState] = useState<EventStateInternal>(() => createInitialState(resolvedEventId));
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
+  const presenceChannelRef = useRef<RealtimeChannel | null>(null);
+  const presenceKeyRef = useRef<string>(`client-${Math.random().toString(36).slice(2, 10)}`);
 
   const loadEventData = useCallback(async () => {
     if (!eventService || !supabase) {
@@ -515,6 +527,89 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       console.error('Failed to refresh pacing metrics', error);
     }
   }, [eventService, state.details.id]);
+
+  const clearRealtimeError = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      realtimeError: null
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) {
+      setState((prev) => ({
+        ...prev,
+        presenceCount: SAMPLE_PRESENCE_COUNT
+      }));
+      return;
+    }
+
+    const channel = supabase.channel(`presence:events:${resolvedEventId}`, {
+      config: { presence: { key: presenceKeyRef.current } }
+    });
+
+    presenceChannelRef.current = channel;
+
+    const syncPresence = () => {
+      try {
+        const presenceState = channel.presenceState();
+        const total = Object.values(presenceState).reduce((count, entry) => {
+          if (Array.isArray(entry)) {
+            return count + entry.length;
+          }
+          if (typeof entry === 'object' && entry !== null) {
+            return count + Object.values(entry as Record<string, unknown>[]).length;
+          }
+          return count;
+        }, 0);
+
+        setState((prev) => ({
+          ...prev,
+          presenceCount: Math.max(total, 1)
+        }));
+      } catch (error) {
+        console.error('Failed to parse presence state', error);
+      }
+    };
+
+    channel
+      .on('presence', { event: 'sync' }, syncPresence)
+      .on('presence', { event: 'join' }, syncPresence)
+      .on('presence', { event: 'leave' }, syncPresence);
+
+    channel
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          syncPresence();
+        } else if (status === 'CHANNEL_ERROR') {
+          setState((prev) => ({
+            ...prev,
+            realtimeError: 'Realtime presence channel error'
+          }));
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to subscribe to presence channel', error);
+        setState((prev) => ({
+          ...prev,
+          realtimeError: 'Unable to join realtime presence channel'
+        }));
+      });
+
+    void channel.track({
+      eventId: resolvedEventId,
+      ts: new Date().toISOString()
+    });
+
+    return () => {
+      channel.unsubscribe().catch(() => undefined);
+      presenceChannelRef.current = null;
+      setState((prev) => ({
+        ...prev,
+        presenceCount: SAMPLE_PRESENCE_COUNT
+      }));
+    };
+  }, [supabase, resolvedEventId]);
 
   const saveEvent = useCallback(
     async (input: SaveEventInput) => {
@@ -912,6 +1007,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       analyticsCleared: state.analyticsCleared,
       finalMessage: state.finalMessage,
       pacingSummary: state.pacingSummary,
+      presenceCount: state.presenceCount,
+      realtimeError: state.realtimeError,
       refreshEvent,
       saveEvent,
       issueJoinCode,
@@ -924,7 +1021,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       endEvent,
       simulateDisconnect,
       resumeFromDisconnect,
-      refreshPacingMetrics
+      refreshPacingMetrics,
+      clearRealtimeError
     }),
     [
       supabase,
@@ -936,6 +1034,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       state.analyticsCleared,
       state.finalMessage,
       state.pacingSummary,
+      state.presenceCount,
+      state.realtimeError,
       refreshEvent,
       saveEvent,
       issueJoinCode,
@@ -948,7 +1048,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       endEvent,
       simulateDisconnect,
       resumeFromDisconnect,
-      refreshPacingMetrics
+      refreshPacingMetrics,
+      clearRealtimeError
     ]
   );
 
