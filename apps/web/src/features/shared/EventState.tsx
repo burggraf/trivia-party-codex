@@ -114,7 +114,9 @@ export interface EventStateContextValue {
   saveEvent: (input: SaveEventInput) => Promise<void>;
   issueJoinCode: () => Promise<{ joinCode: string; expiresAt: string }>;
   requestQuestionReplacement: (roundId: string, questionId: string) => Promise<void>;
-  startEvent: () => void;
+  startEvent: () => Promise<void>;
+  pauseEvent: () => Promise<void>;
+  resumeEvent: () => Promise<void>;
   nextQuestion: () => void;
   revealQuestion: () => void;
   endEvent: () => void;
@@ -719,21 +721,88 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
     [state.rounds, state.details.id, supabase]
   );
 
-  const startEvent = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      details: {
-        ...prev.details,
-        status: 'live',
-        joinCode: prev.details.joinCode ?? generateJoinCode()
-      },
-      scoresUpdated: false,
-      connectionLost: false,
-      pacingVisible: false,
-      analyticsCleared: false,
-      finalMessage: null
-    }));
-  }, []);
+  const startEvent = useCallback(async () => {
+    const fallbackJoinCode = state.details.joinCode ?? generateJoinCode();
+    const fallbackExpiry = state.details.joinCodeExpiresAt ?? new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+    let updatedEvent: GameEvent | null = null;
+
+    if (eventService) {
+      try {
+        updatedEvent = await eventService.updateEventStatus(state.details.id, 'live');
+      } catch (error) {
+        console.error('Failed to update event status to live in Supabase', error);
+      }
+    }
+
+    setState((prev) => {
+      const baseDetails = updatedEvent ? mergeEventDetails(updatedEvent, prev.details) : prev.details;
+      return {
+        ...prev,
+        details: {
+          ...baseDetails,
+          status: updatedEvent?.status ?? 'live',
+          joinCode: updatedEvent?.join_code ?? baseDetails.joinCode ?? fallbackJoinCode,
+          joinCodeExpiresAt:
+            updatedEvent?.join_code_expires_at ?? baseDetails.joinCodeExpiresAt ?? fallbackExpiry
+        },
+        scoresUpdated: false,
+        connectionLost: false,
+        pacingVisible: false,
+        analyticsCleared: false,
+        finalMessage: null
+      } satisfies EventStateInternal;
+    });
+  }, [eventService, state.details.id, state.details.joinCode, state.details.joinCodeExpiresAt]);
+
+  const pauseEvent = useCallback(async () => {
+    let updatedEvent: GameEvent | null = null;
+
+    if (eventService) {
+      try {
+        updatedEvent = await eventService.updateEventStatus(state.details.id, 'paused');
+      } catch (error) {
+        console.error('Failed to pause event in Supabase', error);
+      }
+    }
+
+    setState((prev) => {
+      const baseDetails = updatedEvent ? mergeEventDetails(updatedEvent, prev.details) : prev.details;
+      return {
+        ...prev,
+        details: {
+          ...baseDetails,
+          status: updatedEvent?.status ?? 'paused'
+        },
+        connectionLost: prev.connectionLost,
+        pacingVisible: prev.pacingVisible
+      } satisfies EventStateInternal;
+    });
+  }, [eventService, state.details.id]);
+
+  const resumeEvent = useCallback(async () => {
+    let updatedEvent: GameEvent | null = null;
+
+    if (eventService) {
+      try {
+        updatedEvent = await eventService.updateEventStatus(state.details.id, 'live');
+      } catch (error) {
+        console.error('Failed to resume event in Supabase', error);
+      }
+    }
+
+    setState((prev) => {
+      const baseDetails = updatedEvent ? mergeEventDetails(updatedEvent, prev.details) : prev.details;
+      return {
+        ...prev,
+        details: {
+          ...baseDetails,
+          status: updatedEvent?.status ?? 'live'
+        },
+        connectionLost: false
+      } satisfies EventStateInternal;
+    });
+  }, [eventService, state.details.id]);
 
   const nextQuestion = useCallback(() => {
     setState((prev) => ({ ...prev, scoresUpdated: true }));
@@ -743,16 +812,32 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
     setState((prev) => ({ ...prev, pacingVisible: true, analyticsCleared: false }));
   }, []);
 
-  const endEvent = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      details: { ...prev.details, status: 'completed' },
-      finalMessage: 'Final standings',
-      analyticsCleared: true,
-      pacingVisible: false,
-      connectionLost: false
-    }));
-  }, []);
+  const endEvent = useCallback(async () => {
+    let updatedEvent: GameEvent | null = null;
+
+    if (eventService) {
+      try {
+        updatedEvent = await eventService.updateEventStatus(state.details.id, 'completed');
+      } catch (error) {
+        console.error('Failed to complete event in Supabase', error);
+      }
+    }
+
+    setState((prev) => {
+      const baseDetails = updatedEvent ? mergeEventDetails(updatedEvent, prev.details) : prev.details;
+      return {
+        ...prev,
+        details: {
+          ...baseDetails,
+          status: updatedEvent?.status ?? 'completed'
+        },
+        finalMessage: 'Final standings',
+        analyticsCleared: true,
+        pacingVisible: false,
+        connectionLost: false
+      } satisfies EventStateInternal;
+    });
+  }, [eventService, state.details.id]);
 
   const simulateDisconnect = useCallback(() => {
     setState((prev) => ({
@@ -763,12 +848,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
   }, []);
 
   const resumeFromDisconnect = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      connectionLost: false,
-      details: { ...prev.details, status: 'live' }
-    }));
-  }, []);
+    void resumeEvent();
+  }, [resumeEvent]);
 
   const value = useMemo<EventStateContextValue>(
     () => ({
@@ -787,6 +868,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       issueJoinCode,
       requestQuestionReplacement,
       startEvent,
+      pauseEvent,
+      resumeEvent,
       nextQuestion,
       revealQuestion,
       endEvent,
@@ -807,6 +890,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       issueJoinCode,
       requestQuestionReplacement,
       startEvent,
+      pauseEvent,
+      resumeEvent,
       nextQuestion,
       revealQuestion,
       endEvent,

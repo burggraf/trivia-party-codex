@@ -17,7 +17,7 @@ function AppContent(): JSX.Element {
         <EventSetupPage
           onManageRounds={() => setView('rounds')}
           onStartGame={() => {
-            startEvent();
+            void startEvent();
             setView('host');
           }}
           onViewScoreboard={() => setView('scoreboard')}

@@ -76,10 +76,23 @@ export function createEventService(supabase: SupabaseClient) {
 
   const updateEvent = async (
     eventId: string,
-    payload: Partial<Pick<GameEvent, 'name' | 'venue' | 'scheduled_at' | 'round_count' | 'questions_per_round'>>
+    payload: Partial<
+      Pick<GameEvent, 'name' | 'venue' | 'scheduled_at' | 'round_count' | 'questions_per_round' | 'status'>
+    >
   ): Promise<GameEvent> => {
     const result = await supabase.from('game_events').update(payload).eq('id', eventId).select('*').single();
     return gameEventSchema.parse(ensure(result, 'updateEvent'));
+  };
+
+  const updateEventStatus = async (eventId: string, status: GameEvent['status']): Promise<GameEvent> => {
+    const result = await supabase
+      .from('game_events')
+      .update({ status })
+      .eq('id', eventId)
+      .select('*')
+      .single();
+
+    return gameEventSchema.parse(ensure(result, 'updateEventStatus'));
   };
 
   const createTeam = async ({ eventId, name, joinSecret }: CreateTeamInput): Promise<Team> => {
@@ -163,6 +176,7 @@ export function createEventService(supabase: SupabaseClient) {
     recordAnswer,
     upsertBroadcastSnapshot,
     fetchBroadcastSnapshot,
-    listEventMetrics
+    listEventMetrics,
+    updateEventStatus
   };
 }

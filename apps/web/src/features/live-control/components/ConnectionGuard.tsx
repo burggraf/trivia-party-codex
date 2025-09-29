@@ -20,11 +20,9 @@ export function ConnectionGuard({ connectionLost, onResume }: ConnectionGuardPro
         type="button"
         className="mt-3 rounded border border-gray-300 bg-white px-4 py-2 text-sm"
         onClick={onResume}
-        disabled={connectionLost}
       >
         Resume game
       </button>
     </div>
   );
 }
-
