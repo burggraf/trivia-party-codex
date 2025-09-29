@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
-import { useEventState, type SaveEventInput } from '../shared/EventState';
+import { TRIVIA_CATEGORIES, useEventState, type SaveEventInput } from '../shared/EventState';
 import { JoinCodeDisplay } from './components/JoinCodeDisplay';
 import { createEvent } from './actions/createEvent';
 
-const CATEGORY_OPTIONS = ['Science', 'History', 'Sports', 'Pop Culture', 'Geography'];
+const CATEGORY_OPTIONS = [...TRIVIA_CATEGORIES];
 
 const eventConfigSchema = z.object({
   name: z
@@ -47,6 +47,23 @@ export function EventSetupPage({ onManageRounds, onStartGame, onViewScoreboard }
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+
+  const allCategoriesSelected = selectedCategories.length === CATEGORY_OPTIONS.length;
+
+  const handleToggleCategory = (category: string) => {
+    setSelectedCategories((current) => {
+      if (current.includes(category)) {
+        return current.filter((value) => value !== category);
+      }
+
+      const next = new Set([...current, category]);
+      return CATEGORY_OPTIONS.filter((option) => next.has(option));
+    });
+  };
+
+  const handleToggleAllCategories = () => {
+    setSelectedCategories((current) => (current.length === CATEGORY_OPTIONS.length ? [] : [...CATEGORY_OPTIONS]));
+  };
 
   useEffect(() => {
     if (isSaving) {
@@ -229,24 +246,36 @@ export function EventSetupPage({ onManageRounds, onStartGame, onViewScoreboard }
           </div>
 
           {categoryPickerVisible ? (
-            <select
-              id="category-picker"
-              multiple
-              aria-label="Available trivia categories"
-              size={CATEGORY_OPTIONS.length}
-              className="mt-2 w-full rounded border border-gray-300 px-3 py-2"
-              value={selectedCategories}
-              onChange={(event) => {
-                const options = Array.from(event.target.selectedOptions).map((option) => option.value);
-                setSelectedCategories(options);
-              }}
-            >
-              {CATEGORY_OPTIONS.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+            <fieldset id="category-picker" className="mt-2 rounded border border-gray-200 p-3">
+              <legend className="mb-2 text-sm font-medium">Available trivia categories</legend>
+              <div className="mb-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded border border-gray-300 px-3 py-2 text-xs font-medium"
+                  onClick={handleToggleAllCategories}
+                >
+                  {allCategoriesSelected ? 'Unselect all' : 'Select all'}
+                </button>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {CATEGORY_OPTIONS.map((category, index) => {
+                  const inputId = `category-${index}`;
+                  const checked = selectedCategories.includes(category);
+                  return (
+                    <label key={category} htmlFor={inputId} className="flex items-center gap-2 text-sm">
+                      <input
+                        id={inputId}
+                        type="checkbox"
+                        value={category}
+                        checked={checked}
+                        onChange={() => handleToggleCategory(category)}
+                      />
+                      <span>{category}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
           ) : null}
         </div>
 

@@ -19,14 +19,34 @@ import {
   type PacingSummary
 } from '../../../../../packages/shared/analytics/pacing';
 
-const DEFAULT_CATEGORIES = ['Science', 'History', 'Sports', 'Pop Culture'];
+export const TRIVIA_CATEGORIES = [
+  'Arts & Literature',
+  'Entertainment',
+  'Food and Drink',
+  'General Knowledge',
+  'Geography',
+  'History',
+  'Pop Culture',
+  'Science',
+  'Sports',
+  'Technology'
+] as const;
+
+const DEFAULT_CATEGORIES = [...TRIVIA_CATEGORIES];
 const FALLBACK_EVENT_ID = '11111111-1111-1111-1111-111111111111';
+const SUPABASE_DISABLED =
+  ((import.meta.env?.VITE_SUPABASE_DISABLED as string | undefined) ?? 'false').toLowerCase() === 'true';
 
 let cachedSupabase: SupabaseClient | null | undefined;
 
 export function getSupabaseClient(): SupabaseClient | null {
   if (cachedSupabase !== undefined) {
     return cachedSupabase;
+  }
+
+  if (SUPABASE_DISABLED) {
+    cachedSupabase = null;
+    return null;
   }
 
   const url = (import.meta.env?.VITE_SUPABASE_URL as string | undefined) ?? null;
