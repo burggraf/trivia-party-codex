@@ -4,38 +4,38 @@
 **Prerequisites**: plan.md (required), research.md, data-model.md, contracts/
 
 ## Phase 3.1: Setup
-- [ ] T001 Establish Supabase CLI project configuration in `supabase/config.toml` and verify environment variables from `.env.local` are mapped per plan.md.
-- [ ] T002 Create/validate workspace directories (`apps/web`, `packages/shared/{analytics,supabase,ui}`, `apps/web/tests/{contract,integration,accessibility,performance}`) matching the structure decision in plan.md.
-- [ ] T003 Configure project tooling (ESLint, Prettier, Tailwind, Vitest, Playwright) in `apps/web/package.json` and associated config files to satisfy constitution linting requirements.
+- [X] T001 Establish Supabase CLI project configuration in `supabase/config.toml` and verify environment variables from `.env.local` are mapped per plan.md.
+- [X] T002 Create/validate workspace directories (`apps/web`, `packages/shared/{analytics,supabase,ui}`, `apps/web/tests/{contract,integration,accessibility,performance}`) matching the structure decision in plan.md.
+- [X] T003 Configure project tooling (ESLint, Prettier, Tailwind, Vitest, Playwright) in `apps/web/package.json` and associated config files to satisfy constitution linting requirements.
 
 ## Phase 3.2: Tests & Experience Gates ⚠️ MUST COMPLETE BEFORE 3.3
-- [ ] T004 [P] Author failing contract test for `select_round_questions` RPC in `apps/web/tests/contract/select-round-questions.test.ts` using MSW to assert unique category-filtered question IDs.
-- [ ] T005 [P] Author failing contract test for `issue_join_code` edge function in `apps/web/tests/contract/issue-join-code.test.ts` validating 6-character code uniqueness and expiry fields.
-- [ ] T006 [P] Author failing contract test in `apps/web/tests/contract/realtime-payloads.test.ts` that enforces realtime message envelope schema and heartbeat semantics.
-- [ ] T007 [P] Create failing Playwright spec `apps/web/tests/integration/host-event-flow.spec.ts` covering full host start-to-finish gameplay with score updates.
-- [ ] T008 [P] Create failing Playwright spec `apps/web/tests/integration/round-curation.spec.ts` covering question removal and deterministic replacement before save.
-- [ ] T009 [P] Create failing Playwright spec `apps/web/tests/integration/round-results-scoreboard.spec.ts` verifying standings presentation and tie handling.
-- [ ] T010 [P] Create failing Playwright spec `apps/web/tests/integration/network-recovery.spec.ts` simulating realtime outage and asserting auto-pause notification.
-- [ ] T011 [P] Create failing Playwright spec `apps/web/tests/integration/pacing-analytics.spec.ts` verifying pacing metrics logging and purge after event completion.
-- [ ] T012 [P] Implement accessibility regression test with Axe in `apps/web/tests/accessibility/host-player-flows.spec.ts` for host controls, player client, and scoreboard.
-- [ ] T013 [P] Implement performance smoke test in `apps/web/tests/performance/realtime-latency.test.ts` asserting <1s perceived latency budget.
+- [X] T004 [P] Author failing contract test for `select_round_questions` RPC in `apps/web/tests/contract/select-round-questions.test.ts` using MSW to assert unique category-filtered question IDs.
+- [X] T005 [P] Author failing contract test for `issue_join_code` edge function in `apps/web/tests/contract/issue-join-code.test.ts` validating 6-character code uniqueness and expiry fields.
+- [X] T006 [P] Author failing contract test in `apps/web/tests/contract/realtime-payloads.test.ts` that enforces realtime message envelope schema and heartbeat semantics.
+- [X] T007 [P] Create failing Playwright spec `apps/web/tests/integration/host-event-flow.spec.ts` covering full host start-to-finish gameplay with score updates.
+- [X] T008 [P] Create failing Playwright spec `apps/web/tests/integration/round-curation.spec.ts` covering question removal and deterministic replacement before save.
+- [X] T009 [P] Create failing Playwright spec `apps/web/tests/integration/round-results-scoreboard.spec.ts` verifying standings presentation and tie handling.
+- [X] T010 [P] Create failing Playwright spec `apps/web/tests/integration/network-recovery.spec.ts` simulating realtime outage and asserting auto-pause notification.
+- [X] T011 [P] Create failing Playwright spec `apps/web/tests/integration/pacing-analytics.spec.ts` verifying pacing metrics logging and purge after event completion.
+- [X] T012 [P] Implement accessibility regression test with Axe in `apps/web/tests/accessibility/host-player-flows.spec.ts` for host controls, player client, and scoreboard.
+- [X] T013 [P] Implement performance smoke test in `apps/web/tests/performance/realtime-latency.test.ts` asserting <1s perceived latency budget.
 
 ## Phase 3.3: Core Implementation (ONLY after tests and gates are failing)
-- [ ] T014 Create Supabase migration `supabase/migrations/2025092801_create_game_event.sql` defining `GameEvent` and `EventRound` tables with required constraints. (Depends on T004-T013)
-- [ ] T015 Create Supabase migration `supabase/migrations/2025092802_create_team_player_session.sql` defining `Team` and `PlayerSession` tables with limits aligned to clarified rules. (Depends on T014)
-- [ ] T016 Create Supabase migration `supabase/migrations/2025092803_create_answer_submission_metrics.sql` defining `AnswerSubmission`, `EventMetric`, and `BroadcastSnapshot` structures plus supporting indexes. (Depends on T015)
-- [ ] T017 Add Postgres function migration `supabase/migrations/2025092804_select_round_questions_fn.sql` implementing deterministic question selection logic. (Depends on T014, T016)
-- [ ] T018 Add Postgres function migration `supabase/migrations/2025092805_purge_event_metrics_fn.sql` scheduling analytics purge on event completion. (Depends on T016)
-- [ ] T019 Implement Supabase Edge Function `issue_join_code` in `supabase/functions/issue_join_code/index.ts` enforcing uniqueness and expiry. (Depends on T015)
-- [ ] T020 [P] Create Zod schema and TypeScript types for `GameEvent` in `packages/shared/supabase/schemas/game-event.ts` using database shape. (Depends on T014)
-- [ ] T021 [P] Create Zod schema and TypeScript types for `EventRound` and broadcast payload stubs in `packages/shared/supabase/schemas/event-round.ts`. (Depends on T014, T017)
-- [ ] T022 [P] Create Zod schema for `Team` and `PlayerSession` in `packages/shared/supabase/schemas/team.ts`. (Depends on T015)
-- [ ] T023 [P] Create Zod schema for `AnswerSubmission` and `EventMetric` in `packages/shared/supabase/schemas/answer-submission.ts`. (Depends on T016, T018)
-- [ ] T024 Implement Supabase data access utilities in `packages/shared/supabase/client/event-service.ts` covering CRUD, team limits, and submission writes. (Depends on T020-T023)
-- [ ] T025 Implement pacing analytics helper in `packages/shared/analytics/pacing.ts` to compute latency and invoke purge function. (Depends on T018, T023)
-- [ ] T026 Implement realtime session manager in `packages/shared/supabase/realtime-live-session.ts` handling broadcast subscription, heartbeat, and resume tokens. (Depends on T017, T024)
-- [ ] T027 Implement host realtime hook `apps/web/src/features/live-control/hooks/useHostRealtime.ts` wiring manager events to UI state. (Depends on T026)
-- [ ] T028 Implement player realtime hook `apps/web/src/features/player-client/hooks/usePlayerRealtime.ts` enforcing first-answer lock logic. (Depends on T026, T024)
+- [X] T014 Create Supabase migration `supabase/migrations/2025092801_create_game_event.sql` defining `GameEvent` and `EventRound` tables with required constraints. (Depends on T004-T013)
+- [X] T015 Create Supabase migration `supabase/migrations/2025092802_create_team_player_session.sql` defining `Team` and `PlayerSession` tables with limits aligned to clarified rules. (Depends on T014)
+- [X] T016 Create Supabase migration `supabase/migrations/2025092803_create_answer_submission_metrics.sql` defining `AnswerSubmission`, `EventMetric`, and `BroadcastSnapshot` structures plus supporting indexes. (Depends on T015)
+- [X] T017 Add Postgres function migration `supabase/migrations/2025092804_select_round_questions_fn.sql` implementing deterministic question selection logic. (Depends on T014, T016)
+- [X] T018 Add Postgres function migration `supabase/migrations/2025092805_purge_event_metrics_fn.sql` scheduling analytics purge on event completion. (Depends on T016)
+- [X] T019 Implement Supabase Edge Function `issue_join_code` in `supabase/functions/issue_join_code/index.ts` enforcing uniqueness and expiry. (Depends on T015)
+- [X] T020 [P] Create Zod schema and TypeScript types for `GameEvent` in `packages/shared/supabase/schemas/game-event.ts` using database shape. (Depends on T014)
+- [X] T021 [P] Create Zod schema and TypeScript types for `EventRound` and broadcast payload stubs in `packages/shared/supabase/schemas/event-round.ts`. (Depends on T014, T017)
+- [X] T022 [P] Create Zod schema for `Team` and `PlayerSession` in `packages/shared/supabase/schemas/team.ts`. (Depends on T015)
+- [X] T023 [P] Create Zod schema for `AnswerSubmission` and `EventMetric` in `packages/shared/supabase/schemas/answer-submission.ts`. (Depends on T016, T018)
+- [X] T024 Implement Supabase data access utilities in `packages/shared/supabase/client/event-service.ts` covering CRUD, team limits, and submission writes. (Depends on T020-T023)
+- [X] T025 Implement pacing analytics helper in `packages/shared/analytics/pacing.ts` to compute latency and invoke purge function. (Depends on T018, T023)
+- [X] T026 Implement realtime session manager in `packages/shared/supabase/realtime-live-session.ts` handling broadcast subscription, heartbeat, and resume tokens. (Depends on T017, T024)
+- [X] T027 Implement host realtime hook `apps/web/src/features/live-control/hooks/useHostRealtime.ts` wiring manager events to UI state. (Depends on T026)
+- [X] T028 Implement player realtime hook `apps/web/src/features/player-client/hooks/usePlayerRealtime.ts` enforcing first-answer lock logic. (Depends on T026, T024)
 - [ ] T029 Build event setup page in `apps/web/src/features/event-setup/EventSetupPage.tsx` supporting configuration form and Supabase mutations. (Depends on T024, T020)
 - [ ] T030 Build question preview/editor in `apps/web/src/features/event-setup/QuestionPreviewPanel.tsx` including removal and replacement flow. (Depends on T029, T017)
 - [ ] T031 Build join code + QR display component in `apps/web/src/features/event-setup/components/JoinCodeDisplay.tsx` using edge function call. (Depends on T019, T029)
