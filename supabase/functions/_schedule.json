@@ -1,0 +1,8 @@
+[
+  {
+    "name": "pacing-export-nightly",
+    "schedule": "0 * * * *",
+    "endpoint": "/pacing_export",
+    "method": "POST"
+  }
+]
