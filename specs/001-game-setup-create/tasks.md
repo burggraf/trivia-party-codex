@@ -40,7 +40,7 @@
 - [X] T030 Build question preview/editor in `apps/web/src/features/event-setup/QuestionPreviewPanel.tsx` including removal and replacement flow. (Depends on T029, T017)
 - [X] T031 Build join code + QR display component in `apps/web/src/features/event-setup/components/JoinCodeDisplay.tsx` using edge function call. (Depends on T019, T029)
 - [X] T032 Build host live control panel in `apps/web/src/features/live-control/HostControlPanel.tsx` enabling start/pause/resume/end actions. (Depends on T027, T029)
-- [ ] T033 Build connection guard UI in `apps/web/src/features/live-control/components/ConnectionGuard.tsx` reacting to realtime outages. (Depends on T032)
+- [X] T033 Build connection guard UI in `apps/web/src/features/live-control/components/ConnectionGuard.tsx` reacting to realtime outages. (Depends on T032)
 - [ ] T034 Build scoreboard display in `apps/web/src/features/live-control/ScoreboardDisplay.tsx` rendering highlights and tie states. (Depends on T032)
 - [ ] T035 Build pacing dashboard overlay in `apps/web/src/features/live-control/components/PacingDashboard.tsx` consuming analytics helper. (Depends on T025, T032)
 - [ ] T036 Build player client shell in `apps/web/src/features/player-client/PlayerClientApp.tsx` for join flow and question display. (Depends on T028)

@@ -218,10 +218,7 @@ export function HostControlPanel({ onExit, onViewScoreboard }: HostControlPanelP
 
       <ConnectionGuard
         connectionLost={connectionLost}
-        onResume={(event) => {
-          event.preventDefault();
-          void handleResume();
-        }}
+        onRetry={handleResume}
       />
       <PacingDashboard visible={pacingVisible} />
 
