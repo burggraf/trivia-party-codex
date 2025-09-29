@@ -36,8 +36,8 @@
 - [X] T026 Implement realtime session manager in `packages/shared/supabase/realtime-live-session.ts` handling broadcast subscription, heartbeat, and resume tokens. (Depends on T017, T024)
 - [X] T027 Implement host realtime hook `apps/web/src/features/live-control/hooks/useHostRealtime.ts` wiring manager events to UI state. (Depends on T026)
 - [X] T028 Implement player realtime hook `apps/web/src/features/player-client/hooks/usePlayerRealtime.ts` enforcing first-answer lock logic. (Depends on T026, T024)
-- [ ] T029 Build event setup page in `apps/web/src/features/event-setup/EventSetupPage.tsx` supporting configuration form and Supabase mutations. (Depends on T024, T020)
-- [ ] T030 Build question preview/editor in `apps/web/src/features/event-setup/QuestionPreviewPanel.tsx` including removal and replacement flow. (Depends on T029, T017)
+- [X] T029 Build event setup page in `apps/web/src/features/event-setup/EventSetupPage.tsx` supporting configuration form and Supabase mutations. (Depends on T024, T020)
+- [X] T030 Build question preview/editor in `apps/web/src/features/event-setup/QuestionPreviewPanel.tsx` including removal and replacement flow. (Depends on T029, T017)
 - [ ] T031 Build join code + QR display component in `apps/web/src/features/event-setup/components/JoinCodeDisplay.tsx` using edge function call. (Depends on T019, T029)
 - [ ] T032 Build host live control panel in `apps/web/src/features/live-control/HostControlPanel.tsx` enabling start/pause/resume/end actions. (Depends on T027, T029)
 - [ ] T033 Build connection guard UI in `apps/web/src/features/live-control/components/ConnectionGuard.tsx` reacting to realtime outages. (Depends on T032)
@@ -85,4 +85,3 @@ task-agent run T004
 - Keep React component files under 250 LOC and leverage shadcn/Tailwind primitives.
 - Capture evidence for performance (<1s latency) and accessibility checks to satisfy constitution gates.
 - Commit after each task and link PRs to this task list for traceability.
-

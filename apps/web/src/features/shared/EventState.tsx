@@ -175,6 +175,147 @@ function buildRounds(roundCount: number, questionsPerRound: number, categories: 
   });
 }
 
+function normaliseCategories(categories: string[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  categories.forEach((value) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return;
+    }
+    if (seen.has(trimmed)) {
+      return;
+    }
+    seen.add(trimmed);
+    result.push(trimmed);
+  });
+
+  return result.length ? result : DEFAULT_CATEGORIES.slice(0, 1);
+}
+
+function shallowEqualStrings(a: string[] | undefined, b: string[] | undefined): boolean {
+  if (!a || !b) {
+    return false;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((value, index) => value === b[index]);
+}
+
+async function fetchRoundQuestionIds(
+  supabase: SupabaseClient,
+  {
+    eventId,
+    roundIndex,
+    categories,
+    limit
+  }: { eventId: string; roundIndex: number; categories: string[]; limit: number }
+): Promise<string[]> {
+  const { data, error } = await supabase.rpc('select_round_questions', {
+    p_event_id: eventId,
+    p_round_index: roundIndex,
+    p_categories: categories,
+    p_limit: limit
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (Array.isArray(data)) {
+    const ids = data
+      .map((row) => {
+        const candidate = (row as { question_id?: string }).question_id;
+        return typeof candidate === 'string' ? candidate : null;
+      })
+      .filter((value): value is string => Boolean(value));
+    if (ids.length >= limit) {
+      return ids.slice(0, limit);
+    }
+  }
+
+  try {
+    const parsed = validateSelectRoundQuestionsResponse(data);
+    if (parsed.question_ids.length >= limit) {
+      return parsed.question_ids.slice(0, limit);
+    }
+  } catch (parseError) {
+    console.error('Unexpected select_round_questions response shape', parseError);
+  }
+
+  throw new Error('select_round_questions did not return enough question IDs');
+}
+
+async function syncEventRounds(
+  supabase: SupabaseClient,
+  {
+    eventId,
+    roundCount,
+    questionsPerRound,
+    categories
+  }: { eventId: string; roundCount: number; questionsPerRound: number; categories: string[] }
+) {
+  const { data: existingRounds, error: fetchError } = await supabase
+    .from('event_rounds')
+    .select('id, round_index, categories, question_ids, reveal_state')
+    .eq('event_id', eventId)
+    .order('round_index');
+
+  if (fetchError) {
+    throw fetchError;
+  }
+
+  const roundsByIndex = new Map<number, (typeof existingRounds)[number]>();
+  (existingRounds ?? []).forEach((round) => {
+    roundsByIndex.set(round.round_index, round);
+  });
+
+  for (let roundIndex = 0; roundIndex < roundCount; roundIndex += 1) {
+    const existing = roundsByIndex.get(roundIndex);
+    const needsNewQuestions =
+      !existing ||
+      (existing.question_ids?.length ?? 0) !== questionsPerRound ||
+      !shallowEqualStrings(existing.categories, categories);
+
+    const questionIds = needsNewQuestions
+      ? await fetchRoundQuestionIds(supabase, {
+          eventId,
+          roundIndex,
+          categories,
+          limit: questionsPerRound
+        })
+      : existing!.question_ids.slice(0, questionsPerRound);
+
+    const { error: upsertError } = await supabase
+      .from('event_rounds')
+      .upsert(
+        {
+          event_id: eventId,
+          round_index: roundIndex,
+          categories,
+          question_ids: questionIds,
+          reveal_state: existing?.reveal_state ?? 'pending'
+        },
+        { onConflict: 'event_id,round_index' }
+      );
+
+    if (upsertError) {
+      throw upsertError;
+    }
+  }
+
+  const deleteQuery = supabase.from('event_rounds').delete().eq('event_id', eventId);
+  const maxIndex = roundCount - 1;
+  const deleteExecutor = maxIndex >= 0 ? deleteQuery.gt('round_index', maxIndex) : deleteQuery;
+
+  const { error: cleanupError } = await deleteExecutor;
+  if (cleanupError) {
+    throw cleanupError;
+  }
+}
+
 function createInitialState(eventId: string): EventStateInternal {
   const categories = DEFAULT_CATEGORIES.slice(0, 2);
   return {
@@ -329,59 +470,71 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
   const saveEvent = useCallback(
     async (input: SaveEventInput) => {
       const scheduledAtIso = input.scheduledAt ? new Date(input.scheduledAt).toISOString() : null;
+      const categories = normaliseCategories(input.categories);
 
-      if (eventService) {
-        try {
-          const updated = await eventService.updateEvent(state.details.id, {
+      if (!eventService) {
+        setState((prev) => ({
+          ...prev,
+          details: {
+            ...prev.details,
             name: input.name,
-            venue: input.venue || null,
-            scheduled_at: scheduledAtIso,
-            round_count: input.roundCount,
-            questions_per_round: input.questionsPerRound
-          });
-
-          setState((prev) => ({
-            ...prev,
-            details: {
-              ...mergeEventDetails(updated, prev.details),
-              categories: input.categories
-            },
-            rounds: buildRounds(input.roundCount, input.questionsPerRound, input.categories),
-            scoresUpdated: false,
-            analyticsCleared: false,
-            pacingVisible: false,
-            finalMessage: null
-          }));
-
-          void loadEventData();
-          return;
-        } catch (error) {
-          console.error('Failed to persist event configuration to Supabase', error);
-        }
+            venue: input.venue,
+            scheduledAt: scheduledAtIso,
+            roundCount: input.roundCount,
+            questionsPerRound: input.questionsPerRound,
+            categories,
+            status: 'scheduled',
+            joinCode: prev.details.joinCode ?? generateJoinCode(),
+            joinCodeExpiresAt:
+              prev.details.joinCodeExpiresAt ?? new Date(Date.now() + 60 * 60 * 1000).toISOString()
+          },
+          rounds: buildRounds(input.roundCount, input.questionsPerRound, categories),
+          scoresUpdated: false,
+          analyticsCleared: false,
+          pacingVisible: false,
+          finalMessage: null
+        }));
+        return;
       }
 
-      setState((prev) => ({
-        ...prev,
-        details: {
-          ...prev.details,
+      try {
+        const updated = await eventService.updateEvent(state.details.id, {
           name: input.name,
-          venue: input.venue,
-          scheduledAt: scheduledAtIso,
-          roundCount: input.roundCount,
-          questionsPerRound: input.questionsPerRound,
-          categories: input.categories,
-          status: 'scheduled',
-          joinCode: prev.details.joinCode ?? generateJoinCode(),
-          joinCodeExpiresAt: prev.details.joinCodeExpiresAt ?? new Date(Date.now() + 60 * 60 * 1000).toISOString()
-        },
-        rounds: buildRounds(input.roundCount, input.questionsPerRound, input.categories),
-        scoresUpdated: false,
-        analyticsCleared: false,
-        pacingVisible: false,
-        finalMessage: null
-      }));
+          venue: input.venue || null,
+          scheduled_at: scheduledAtIso,
+          round_count: input.roundCount,
+          questions_per_round: input.questionsPerRound
+        });
+
+        if (supabase) {
+          await syncEventRounds(supabase, {
+            eventId: state.details.id,
+            roundCount: input.roundCount,
+            questionsPerRound: input.questionsPerRound,
+            categories
+          });
+        }
+
+        setState((prev) => ({
+          ...prev,
+          details: {
+            ...mergeEventDetails(updated, prev.details),
+            categories
+          },
+          rounds: buildRounds(input.roundCount, input.questionsPerRound, categories),
+          scoresUpdated: false,
+          analyticsCleared: false,
+          pacingVisible: false,
+          finalMessage: null
+        }));
+
+        void loadEventData();
+      } catch (error) {
+        console.error('Failed to persist event configuration', error);
+        throw error instanceof Error ? error : new Error('Failed to save event configuration');
+      }
     },
-    [eventService, loadEventData, state.details.id]
+    [eventService, loadEventData, state.details.id, supabase]
   );
 
   const issueJoinCode = useCallback(async () => {
@@ -432,6 +585,11 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
         return;
       }
 
+      const targetQuestion = targetRound.questions.find((question) => question.id === questionId);
+      if (!targetQuestion) {
+        return;
+      }
+
       setState((prev) => ({
         ...prev,
         rounds: prev.rounds.map((round) => {
@@ -458,7 +616,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
                   return {
                     ...question,
                     id: makeId('question', Date.now()),
-                    prompt: `Replacement question ${new Date().getSeconds()}`,
+                    prompt: `Replacement question (${targetQuestion.category}) ${new Date().getSeconds()}`,
+                    category: targetQuestion.category,
                     replacing: false
                   } satisfies QuestionState;
                 })
@@ -473,7 +632,7 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
         const { data, error } = await supabase.rpc('select_round_questions', {
           p_event_id: state.details.id,
           p_round_index: targetRound.index,
-          p_categories: targetRound.categories,
+          p_categories: [targetQuestion.category],
           p_limit: 1
         });
 
@@ -534,7 +693,7 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
                   prompt:
                     newQuestionDetails?.prompt ?? `Replacement question ${round.index + 1}`,
                   category:
-                    newQuestionDetails?.category ?? targetRound.categories[0] ?? 'General',
+                    newQuestionDetails?.category ?? targetQuestion.category,
                   replacing: false
                 } satisfies QuestionState;
               })

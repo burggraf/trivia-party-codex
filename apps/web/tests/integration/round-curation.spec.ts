@@ -10,7 +10,7 @@ test.describe('Round curation workflow', () => {
     const firstQuestion = page.getByTestId('question-card-0');
     const firstCategory = await firstQuestion.getByTestId('category').innerText();
 
-    await firstQuestion.getByRole('button', { name: /remove question/i }).click();
+    await firstQuestion.getByRole('button', { name: /replace question/i }).click();
     await expect(firstQuestion.getByText(/fetching replacement/i)).toBeVisible();
     await expect(firstQuestion.getByTestId('category')).toHaveText(firstCategory);
     await expect(firstQuestion).not.toHaveText(/original question text/i);
