@@ -45,7 +45,7 @@
 - [X] T035 Build pacing dashboard overlay in `apps/web/src/features/live-control/components/PacingDashboard.tsx` consuming analytics helper. (Depends on T025, T032)
 - [X] T036 Build player client shell in `apps/web/src/features/player-client/PlayerClientApp.tsx` for join flow and question display. (Depends on T028)
 - [X] T037 Implement player answer form lock-in component in `apps/web/src/features/player-client/components/AnswerForm.tsx`. (Depends on T036)
-- [ ] T038 Implement event completion action in `apps/web/src/features/live-control/actions/completeEvent.ts` calling purge function and broadcasting final standings. (Depends on T025, T032)
+- [X] T038 Implement event completion action in `apps/web/src/features/live-control/actions/completeEvent.ts` calling purge function and broadcasting final standings. (Depends on T025, T032)
 
 ## Phase 3.4: Integration
 - [ ] T039 Wire Supabase storage and realtime configuration in `apps/web/src/app/providers/RealtimeProvider.tsx` with presence and error handling. (Depends on T026-T028, T032)
