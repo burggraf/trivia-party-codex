@@ -52,7 +52,7 @@
 - [X] T040 Connect automated pacing analytics export to Supabase scheduled job configuration in `supabase/config.toml` and `supabase/functions/_schedule.json`. (Depends on T018, T025, T038)
 - [ ] T041 Integrate accessibility regression command `pnpm run lint:a11y` into CI workflow file `.github/workflows/ci.yml`. (Depends on T012, T003)
 - [X] T041A Implement host authentication UI and Supabase Auth integration at `apps/web/src/features/auth/HostAuthGate.tsx`, ensuring sessions persist and RLS policies apply. (Depends on T003, Supabase config)
-- [ ] T041B Create event creation flow at `apps/web/src/features/event-setup/actions/createEvent.ts` with UI entry point to generate new `game_events` tied to current host. (Depends on T024, T041A)
+- [X] T041B Create event creation flow at `apps/web/src/features/event-setup/actions/createEvent.ts` with UI entry point to generate new `game_events` tied to current host. (Depends on T024, T041A)
 - [ ] T041C Update event routing to require auth and auto-load/create events (`apps/web/src/App.tsx`, `apps/web/src/app/routes/*`) handling missing event IDs gracefully. (Depends on T041A, T041B)
 
 ## Phase 3.5: Polish

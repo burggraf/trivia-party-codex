@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useEventState, type SaveEventInput } from '../shared/EventState';
 import { JoinCodeDisplay } from './components/JoinCodeDisplay';
+import { createEvent } from './actions/createEvent';
 
 const CATEGORY_OPTIONS = ['Science', 'History', 'Sports', 'Pop Culture', 'Geography'];
 
@@ -44,6 +45,8 @@ export function EventSetupPage({ onManageRounds, onStartGame, onViewScoreboard }
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     if (isSaving) {
@@ -100,6 +103,32 @@ export function EventSetupPage({ onManageRounds, onStartGame, onViewScoreboard }
       setFormError('Unable to save the event right now. Please try again.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCreateNewEvent = async () => {
+    setIsCreating(true);
+    setCreateError(null);
+
+    const payload: SaveEventInput = {
+      name,
+      venue,
+      scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+      roundCount: Number(roundCount) || 3,
+      questionsPerRound: Number(questionsPerRound) || 5,
+      categories: selectedCategories.length ? selectedCategories : CATEGORY_OPTIONS.slice(0, 1)
+    };
+
+    try {
+      const newEvent = await createEvent(payload);
+      const url = new URL(window.location.href);
+      url.searchParams.set('eventId', newEvent.id);
+      window.location.href = url.toString();
+    } catch (error) {
+      console.error('Failed to create new event', error);
+      setCreateError(error instanceof Error ? error.message : 'Unable to create a new event right now.');
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -243,6 +272,14 @@ export function EventSetupPage({ onManageRounds, onStartGame, onViewScoreboard }
           <button
             type="button"
             className="rounded border border-gray-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={handleCreateNewEvent}
+            disabled={isSaving || isCreating}
+          >
+            {isCreating ? 'Creating…' : 'Create new event'}
+          </button>
+          <button
+            type="button"
+            className="rounded border border-gray-300 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             onClick={onStartGame}
             disabled={isSaving}
           >
@@ -267,6 +304,12 @@ export function EventSetupPage({ onManageRounds, onStartGame, onViewScoreboard }
           </button>
         </div>
       </form>
+
+      {createError ? (
+        <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+          {createError}
+        </div>
+      ) : null}
 
       <JoinCodeDisplay />
     </section>
