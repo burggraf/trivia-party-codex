@@ -56,7 +56,7 @@
 - [X] T041C Update event routing to require auth and auto-load/create events (`apps/web/src/App.tsx`, `apps/web/src/app/routes/*`) handling missing event IDs gracefully. (Depends on T041A, T041B)
 
 ## Phase 3.5: Polish
-- [ ] T042 [P] Update quickstart guide at `specs/001-game-setup-create/quickstart.md` with final commands, test invocations, and validation notes. (Depends on T014-T041)
+- [X] T042 [P] Update quickstart guide at `specs/001-game-setup-create/quickstart.md` with final commands, test invocations, and validation notes. (Depends on T014-T041)
 - [ ] T043 [P] Document manual validation evidence in `docs/manual-validation/game-event-setup.md` covering host, player, outage, and analytics scenarios. (Depends on T042)
 - [ ] T044 Run full test suite via `pnpm run test:ci` and capture report in `reports/2025-09-28-test-run.md`. (Depends on T039-T043)
 

@@ -2,28 +2,48 @@
 
 ## Prerequisites
 1. Install Node.js 20 LTS and pnpm.
-2. Create Supabase project with `questions` table pre-populated and enable Realtime Broadcast.
-3. Configure environment variables in `.env.local`:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_SUPABASE_SERVICE_KEY` (for local tooling only)
+2. Create a Supabase project with the shared `questions` dataset imported and Realtime (Broadcast + Presence) enabled.
+3. Provision a host account that will run the venue console (via Supabase Dashboard → Authentication → Add user).
+4. Populate `apps/web/.env.local` with the public environment variables:
+   ```bash
+   VITE_SUPABASE_URL="https://<project-ref>.supabase.co"
+   VITE_SUPABASE_ANON_KEY="<anon-key>"
+   ```
+   > The service-role key is never loaded by the client; use it only through the Supabase CLI when deploying edge functions.
 
 ## Setup
 ```bash
 pnpm install
-pnpm run supabase:link   # configure cli with project id
-pnpm run db:migrate      # applies GameEvent + Team schema
+pnpm run supabase:link   # one-time: link local CLI profile to your Supabase project
+pnpm run db:migrate      # applies migrations for events, rounds, teams, metrics
+```
+
+Deploy edge functions and configure the scheduled pacing export:
+```bash
+# Set secrets expected by Deno edge functions
+npx supabase secrets set --project-ref <project-ref> \
+  SERVICE_ROLE_KEY="<service-role-key>" \
+  PROJECT_URL="https://<project-ref>.supabase.co" \
+  ANON_KEY="<anon-key>"
+
+# Deploy edge functions
+npx supabase functions deploy issue_join_code --project-ref <project-ref>
+npx supabase functions deploy pacing_export --project-ref <project-ref>
+
+# Apply schedule configuration
+npx supabase functions deploy --include "_schedule.json" --project-ref <project-ref>
 ```
 
 ## Development
 ```bash
-pnpm run dev             # launches Vite dev server at http://localhost:5173
-pnpm run supabase:realtime # optional helper to tail realtime logs
+pnpm run dev  # launches Vite dev server at http://localhost:5173
 ```
+During development, sign in with the host credentials you created earlier. The app automatically bootstraps an event for the signed-in host if none exists.
 
 ## Testing Workflow
-1. **Unit Tests (Vitest)**
+1. **Lint + Unit (Vitest)**
    ```bash
+   pnpm run lint
    pnpm run test:unit
    ```
 2. **Contract Tests (Vitest + MSW)**
@@ -40,19 +60,24 @@ pnpm run supabase:realtime # optional helper to tail realtime logs
    ```
 
 ## Manual Validation Scenarios
-1. **Host Setup**
-   - Create event with 3 rounds, 5 questions each, assign categories.
-   - Remove one question; confirm replacement respects category filter.
-2. **Player Join**
-   - Share 6-character join code + QR; verify new team creation capped at 30.
-   - Attempt 6th player to join a team; expect friendly rejection.
-3. **Live Control**
-   - Start game, advance questions; ensure scoreboard updates <1s.
-   - Simulate network drop (disable network tab); host should see auto-pause message.
-4. **Pacing Analytics**
-   - Review live pacing dashboard; end event and confirm analytics cleared.
-5. **Accessibility & Display**
-   - Run `pnpm run lint:a11y`; inspect scoreboard on large display for contrast and readable typography.
+1. **Host Authentication & Bootstrap**
+   - Load the app, sign in with the host account, and confirm a draft event is created/loaded.
+   - Sign out/in to verify session persistence gates the console correctly.
+2. **Host Setup**
+   - Configure 3 rounds with 5 questions each and multiple categories.
+   - Remove a question to trigger deterministic replacement from the same category pool.
+3. **Player Join & Lock-in**
+   - Generate a join code, connect a player client, and submit an answer; ensure second submissions are blocked.
+   - Observe presence count increments in the host panel when additional players connect.
+4. **Live Control & Recovery**
+   - Start the event, cycle questions, and monitor <1s scoreboard updates.
+   - Simulate network loss (e.g., disable network tab) and confirm auto-pause + resume works.
+5. **Pacing Analytics**
+   - Watch the pacing dashboard during play, end the event, and confirm metrics purge (dashboard shows “Analytics purged”).
+   - Inspect the scheduled `pacing_export` function logs for successful nightly purge.
+6. **Accessibility & Display**
+   - Run `pnpm run lint:a11y`.
+   - Review the scoreboard and player UI on a large display for contrast, typography, and tie call-outs.
 
 ---
-*Quickstart prepared 2025-09-28*
+*Quickstart updated 2025-09-29*
