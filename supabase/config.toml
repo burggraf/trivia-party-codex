@@ -1,8 +1,5 @@
 project_id = "tobezbliurwknxsxugpe"
 
-[functions]
-ignore = []
-
 [functions.issue_join_code]
 verify_jwt = true
 

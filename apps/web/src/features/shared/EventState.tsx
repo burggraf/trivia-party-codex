@@ -369,8 +369,13 @@ function createInitialState(eventId: string): EventStateInternal {
 
 interface QuestionRow {
   id: string;
-  prompt: string | null;
-  category: string | null;
+  prompt?: string | null;
+  question_text?: string | null;
+  question?: string | null;
+  text?: string | null;
+  category?: string | null;
+  category_name?: string | null;
+  topic?: string | null;
 }
 
 async function fetchQuestionsByIds(client: SupabaseClient, ids: string[]): Promise<Map<string, QuestionRow>> {
@@ -380,7 +385,7 @@ async function fetchQuestionsByIds(client: SupabaseClient, ids: string[]): Promi
 
   const { data, error } = await client
     .from('questions')
-    .select('id, prompt, category')
+    .select('*')
     .in('id', ids);
 
   if (error) {
@@ -394,10 +399,21 @@ function mapRound(round: EventRound, questionMap: Map<string, QuestionRow>): Rou
   const questions = round.question_ids.map((questionId, index) => {
     const fallbackCategory = round.categories[index % round.categories.length] ?? 'General';
     const details = questionMap.get(questionId);
+    const prompt =
+      details?.prompt ??
+      details?.question_text ??
+      details?.question ??
+      details?.text ??
+      `Question ${index + 1}`;
+    const category =
+      details?.category ??
+      details?.category_name ??
+      details?.topic ??
+      fallbackCategory;
     return {
       id: questionId,
-      prompt: details?.prompt ?? `Question ${index + 1}`,
-      category: details?.category ?? fallbackCategory,
+      prompt,
+      category,
       replacing: false
     } satisfies QuestionState;
   });
@@ -577,29 +593,29 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
       .on('presence', { event: 'join' }, syncPresence)
       .on('presence', { event: 'leave' }, syncPresence);
 
-    channel
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          syncPresence();
-        } else if (status === 'CHANNEL_ERROR') {
-          setState((prev) => ({
-            ...prev,
-            realtimeError: 'Realtime presence channel error'
-          }));
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to subscribe to presence channel', error);
+    channel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        syncPresence();
+      } else if (status === 'CHANNEL_ERROR') {
         setState((prev) => ({
           ...prev,
-          realtimeError: 'Unable to join realtime presence channel'
+          realtimeError: 'Realtime presence channel error'
+        }));
+      }
+    });
+
+    channel
+      .track({
+        eventId: resolvedEventId,
+        ts: new Date().toISOString()
+      })
+      .catch((error) => {
+        console.error('Failed to register presence on channel', error);
+        setState((prev) => ({
+          ...prev,
+          realtimeError: 'Unable to register realtime presence'
         }));
       });
-
-    void channel.track({
-      eventId: resolvedEventId,
-      ts: new Date().toISOString()
-    });
 
     return () => {
       channel.unsubscribe().catch(() => undefined);
@@ -824,6 +840,17 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
 
         const questionMap = await fetchQuestionsByIds(supabase, [newQuestionId]);
         const newQuestionDetails = questionMap.get(newQuestionId);
+        const replacementPrompt =
+          newQuestionDetails?.prompt ??
+          newQuestionDetails?.question_text ??
+          newQuestionDetails?.question ??
+          newQuestionDetails?.text ??
+          `Replacement question ${round.index + 1}`;
+        const replacementCategory =
+          newQuestionDetails?.category ??
+          newQuestionDetails?.category_name ??
+          newQuestionDetails?.topic ??
+          targetQuestion.category;
 
         setState((prev) => ({
           ...prev,
@@ -835,10 +862,8 @@ export function EventStateProvider({ children, eventId }: EventStateProviderProp
                 if (question.id !== questionId) return question;
                 return {
                   id: newQuestionId,
-                  prompt:
-                    newQuestionDetails?.prompt ?? `Replacement question ${round.index + 1}`,
-                  category:
-                    newQuestionDetails?.category ?? targetQuestion.category,
+                  prompt: replacementPrompt,
+                  category: replacementCategory,
                   replacing: false
                 } satisfies QuestionState;
               })
